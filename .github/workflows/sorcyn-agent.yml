@@ -30,13 +30,19 @@ jobs:
           claude -p --model opus --output-format json \
             --permission-mode plan \
             "Read tasks/backlog.md and CLAUDE.md. Produce a plan for AT MOST 1 task.
-             Output ONLY valid JSON to stdout with this shape:
+             Output ONLY the raw JSON object with this shape:
              {\"tasks\":[{\"id\":\"t1\",\"branch\":\"agent/short-slug\",\"title\":\"...\",
                \"prompt\":\"detailed implementation instructions\",
                \"depends_on\":[],\"screenshot_route\":null}],
-              \"merge_order\":[\"t1\"]}" \
-          | jq -r '.result' | sed 's/```json//g; s/```//g' > plan.json
-          echo "--- PLAN ---"; cat plan.json
+              \"merge_order\":[\"t1\"]}
+             Output NOTHING but the raw JSON object. No summary, no explanation,
+             no code fences, no 'the plan is written' text. Your entire response
+             must start with { and end with }." \
+          | jq -r '.result' > plan_raw.txt
+          echo "--- RAW MODEL OUTPUT ---"; cat plan_raw.txt
+          # Extract just the JSON object, ignoring any prose the model added around it
+          python3 -c "import re,sys; t=open('plan_raw.txt').read(); m=re.search(r'\{.*\}', t, re.DOTALL); open('plan.json','w').write(m.group(0) if m else t)"
+          echo "--- PARSED PLAN ---"; cat plan.json
 
       # ---------- STAGE 2: EXECUTE ----------
       - name: Execute tasks
