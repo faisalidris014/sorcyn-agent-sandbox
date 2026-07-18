@@ -1,0 +1,98 @@
+name: Sorcyn Agent
+
+on:
+  workflow_dispatch:
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      # ---------- STAGE 1: PLAN ----------
+      - name: Plan the batch
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          claude -p --model opus --output-format json \
+            --permission-mode plan \
+            "Read tasks/backlog.md and CLAUDE.md. Produce a plan for AT MOST 1 task.
+             Output ONLY valid JSON to stdout with this shape:
+             {\"tasks\":[{\"id\":\"t1\",\"branch\":\"agent/short-slug\",\"title\":\"...\",
+               \"prompt\":\"detailed implementation instructions\",
+               \"depends_on\":[],\"screenshot_route\":null}],
+              \"merge_order\":[\"t1\"]}" \
+          | jq -r '.result' | sed 's/```json//g; s/```//g' > plan.json
+          echo "--- PLAN ---"; cat plan.json
+
+      # ---------- STAGE 2: EXECUTE ----------
+      - name: Execute tasks
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "sorcyn-agent"
+          git config user.email "agent@users.noreply.github.com"
+          echo '[]' > prs.json
+
+          for id in $(jq -r '.merge_order[]' plan.json); do
+            task=$(jq -c --arg id "$id" '.tasks[] | select(.id==$id)' plan.json)
+            branch=$(echo "$task" | jq -r '.branch')
+            title=$(echo "$task" | jq -r '.title')
+
+            git checkout main
+            git checkout -b "$branch"
+
+            claude -p --model opus --dangerously-skip-permissions \
+              "$(echo "$task" | jq -r '.prompt')" || echo "claude step returned nonzero, continuing"
+
+            git add -A
+            git commit -m "$title" || { echo "nothing to commit for $id"; continue; }
+            git push -u origin "$branch"
+
+            body="$(echo "$task" | jq -r '.prompt')
+
+            Depends on: $(echo "$task" | jq -r '(.depends_on // []) | join(", ") // "none"')"
+
+            url=$(gh pr create --base main --head "$branch" \
+              --title "$title" --body "$body")
+            echo "opened $url"
+
+            jq --arg id "$id" --arg t "$title" --arg u "$url" \
+              '. += [{id:$id,title:$t,url:$u}]' prs.json > tmp && mv tmp prs.json
+          done
+
+      # ---------- STAGE 3: NOTIFY CORTANA ----------
+      - name: Notify Cortana
+        if: always()
+        env:
+          TG: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ ! -f prs.json ]; then echo '[]' > prs.json; fi
+          count=$(jq 'length' prs.json)
+          if [ "$count" = "0" ]; then
+            msg="Sorcyn sandbox run finished but opened 0 PRs. Check the Actions log."
+          else
+            msg="Sorcyn sandbox run complete. Merge in this order:%0A"
+            i=1
+            for row in $(jq -c '.[]' prs.json); do
+              t=$(echo "$row" | jq -r '.title'); u=$(echo "$row" | jq -r '.url')
+              msg="${msg}${i}. ${t} - ${u}%0A"; i=$((i+1))
+            done
+          fi
+          curl -s "https://api.telegram.org/bot$TG/sendMessage" \
+            -d chat_id="$CHAT" -d text="$msg"
