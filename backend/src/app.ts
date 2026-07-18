@@ -42,6 +42,7 @@ import payoutsRoutes from './modules/payouts/payouts.routes.js';
 import savedSearchesRoutes from './modules/saved-searches/saved-searches.routes.js';
 import savedSellersRoutes from './modules/saved-sellers/saved-sellers.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
+import healthRoutes from './modules/health/health.routes.js';
 import {
   announcementsRoutes,
   adminAnnouncementsRoutes,
@@ -228,6 +229,10 @@ export async function buildApp() {
       checks,
     });
   });
+
+  // Liveness probe (TICKET-001) — dependency-free /healthz, registered at root
+  // alongside the /health readiness probe above.
+  await app.register(healthRoutes);
 
   // API routes
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
