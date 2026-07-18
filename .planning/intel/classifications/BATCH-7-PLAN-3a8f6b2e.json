@@ -1,0 +1,41 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/BATCH_7_PLAN.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Batch 7: Profile & Settings — Execution Plan",
+  "summary": "Step-by-step execution plan for restyling 8 Flutter profile, settings, and account-management screens to match TSX designs.",
+  "scope": [
+    "profile_screen.dart",
+    "edit_profile_screen.dart",
+    "public_profile_screen.dart",
+    "settings_screen.dart",
+    "language_settings_screen.dart",
+    "help_support_screen.dart",
+    "payment_methods_screen.dart",
+    "change_password_modal.dart",
+    "Flutter UI restyle",
+    "design tokens"
+  ],
+  "cross_refs": [
+    "ProfileScreen.tsx",
+    "EditProfileScreen.tsx",
+    "PublicProfileScreen.tsx",
+    "SettingsScreen.tsx",
+    "LanguageSettingsScreen.tsx",
+    "HelpSupportScreen.tsx",
+    "PaymentMethodsScreen.tsx",
+    "ChangePasswordModal.tsx",
+    "mobile/lib/features/profile/presentation/screens/profile_screen.dart",
+    "mobile/lib/features/profile/presentation/screens/edit_profile_screen.dart",
+    "mobile/lib/features/profile/presentation/screens/public_profile_screen.dart",
+    "mobile/lib/features/settings/presentation/screens/settings_screen.dart",
+    "mobile/lib/features/settings/presentation/screens/language_settings_screen.dart",
+    "mobile/lib/features/settings/presentation/screens/help_support_screen.dart",
+    "mobile/lib/features/profile/presentation/screens/payment_methods_screen.dart",
+    "mobile/lib/features/settings/presentation/widgets/change_password_modal.dart"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

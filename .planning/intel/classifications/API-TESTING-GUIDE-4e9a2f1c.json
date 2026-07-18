@@ -1,0 +1,24 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/API_TESTING_GUIDE.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "API Testing Guide",
+  "summary": "Step-by-step Swagger UI walkthrough for testing the Reverse Marketplace API with seeded test accounts, category slugs, and UUID retrieval instructions.",
+  "scope": [
+    "Swagger UI",
+    "API testing",
+    "seeded test accounts",
+    "categories",
+    "auth login flow",
+    "posts",
+    "offers",
+    "transactions",
+    "reviews",
+    "messages"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

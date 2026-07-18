@@ -1,0 +1,9 @@
+# Phase 4 ZAP baseline rules -- ignore expected MEDIUM findings on staging.
+# Format: <ruleId>\t<action>\t<comment>
+# Actions: IGNORE, WARN, FAIL
+# Reference: OWASP ZAP rule IDs https://www.zaproxy.org/docs/alerts/
+10038	WARN	Content Security Policy header -- handled by Nginx; verify in security-headers test
+10202	WARN	Absence of Anti-CSRF Tokens -- JWT Bearer auth (not cookie-based); CSRF not applicable to our API
+10063	WARN	Permissions Policy header -- Phase 6 polish; not required for MVP launch
+10096	WARN	Timestamp Disclosure -- server timestamps in API responses are intentional (non-sensitive)
+90022	WARN	Application Error Disclosure -- test environment may surface stack traces; prod has pino JSON only

@@ -1,0 +1,32 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/setup.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Local Development Setup",
+  "summary": "Step-by-step local development and production deployment setup guide for the Reverse Marketplace backend (Node.js/Fastify) and Flutter mobile app.",
+  "scope": [
+    "local development environment",
+    "Docker Compose (PostgreSQL, Redis)",
+    "backend setup (Node.js, Prisma, environment variables)",
+    "Flutter mobile app setup",
+    "database seeding and test users",
+    "API testing (Swagger, curl scripts)",
+    "production Docker deployment",
+    "CI/CD pipeline",
+    "troubleshooting"
+  ],
+  "cross_refs": [
+    "FCM_SETUP.md",
+    "API_TESTING_GUIDE.md",
+    "TESTING.md",
+    "backend/.env.example",
+    "mobile/pubspec.yaml",
+    ".github/workflows/ci.yml",
+    "docker-compose.production.yml",
+    "prisma/custom-migrations/001_search_vector_trigger.sql"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

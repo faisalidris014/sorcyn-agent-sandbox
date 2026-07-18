@@ -1,0 +1,27 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/SCREEN_HIERARCHY.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Reverse Marketplace - Complete Screen Hierarchy & Element Map",
+  "summary": "Mobile UI screen-by-screen reference mapping all 51 Flutter app screens with their elements, navigation, build status, and component breakdowns.",
+  "scope": [
+    "Flutter mobile app",
+    "screen hierarchy",
+    "navigation flow",
+    "UI elements",
+    "buyer flow",
+    "seller flow",
+    "authentication screens",
+    "post creation",
+    "offers",
+    "messaging",
+    "transactions",
+    "profile screens",
+    "admin screens"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

@@ -1,0 +1,32 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/Reverse Marketplace Session April 15th.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Reverse Marketplace Session April 15th",
+  "summary": "Granola meeting transcript covering Figma AI screen design workflow, a cold-start fake-buyer-posts seeding strategy, branding/logo ideas, and future reverse-Uber expansion brainstorming.",
+  "scope": [
+    "Figma AI design workflow",
+    "splash screen",
+    "login screen",
+    "register screen",
+    "forgot password screen",
+    "email verification screen",
+    "profile page",
+    "buyer feed",
+    "seller feed",
+    "account mode toggle (buyer/seller, B2B/B2C/C2C)",
+    "cold-start seed data strategy (fake buyer posts only, no fake sellers)",
+    "three-day public window mechanic",
+    "marketing on TikTok/Instagram",
+    "app naming and logo concept",
+    "future reverse-Uber/ride-share expansion",
+    "API test scripts",
+    "Docker container startup",
+    "Claude plan mode usage"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

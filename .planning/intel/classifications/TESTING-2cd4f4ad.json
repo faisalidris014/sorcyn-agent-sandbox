@@ -1,0 +1,23 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/TESTING.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Testing Guide",
+  "summary": "Guide to the backend's two testing systems (Vitest unit/integration and curl-based API scripts), covering setup, conventions, helpers, and per-file test breakdowns.",
+  "scope": [
+    "Vitest",
+    "curl-based API test scripts",
+    "test helpers",
+    "Socket.IO test patterns",
+    "test accounts",
+    "Fastify inject",
+    "Prisma test setup",
+    "Stripe/Gemini mocking",
+    "BullMQ test config",
+    "per-module test coverage"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null
+}

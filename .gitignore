@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.production
+backend/.env.doppler
+
+# Doppler local auth state (the project mapping in doppler.yaml IS committed
+# so collaborators inherit it; per-user auth lives in ~/.doppler and is never
+# in the repo, but guard against accidental commit of a .doppler/ dir.)
+.doppler/
+
+# Claude Code config — ignore the whole dir EXCEPT the shared team config.
+# settings.json holds the committed devsync hooks both operators need; the
+# per-user settings.local.json (personal permission allow-list) stays ignored.
+.claude/*
+!.claude/settings.json
+# devsync engine deps + per-machine sync secret (engine code itself IS tracked
+# under scripts/devsync/ which node_modules/ + .env rules below already cover).
+scripts/devsync/node_modules/
+scripts/devsync/.env
+
+# Playwright MCP logs
+.playwright-mcp/
+
+# GitNexus index
+.gitnexus
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+# Ignore per-user editor cruft but SHARE workspace settings so both operators
+# inherit team defaults (e.g. git.autofetch). See .vscode/settings.json.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# Build outputs
+dist/
+build/
+.dart_tool/
+.packages
+.next/
+
+# Flutter
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/build/
+
+# Phase 4 -- security scan reports (regenerable; retained as CI artifacts via upload-artifact)
+# NOTE: coverage/ is intentionally NOT listed here -- SC2a requires coverage/coverage-summary.json
+# + coverage/coverage-unit.json + coverage/coverage-integration.json + coverage/coverage-e2e.json
+# to be committed Phase 4 deliverables (B-2 enforcement in 04-08 Task 4 SC2a final).
+docs/security-scans/
+report_html.html
+
+# k6 seed output (generated per-run; not committed)
+tests/load/seed-users.json

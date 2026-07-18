@@ -1,0 +1,36 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/BATCH_6_PLAN.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Batch 6: Seller Flows — Execution Plan",
+  "summary": "Implementation plan to restyle six seller-side Flutter screens (feed, post detail, my offers, profile setup, profile view, earnings) to match TSX designs.",
+  "scope": [
+    "seller_feed_screen.dart",
+    "seller_post_detail_screen.dart",
+    "my_offers_screen.dart",
+    "seller_profile_setup_screen.dart",
+    "seller_profile_screen.dart",
+    "seller_earnings_screen.dart",
+    "Flutter mobile app",
+    "seller flows UI",
+    "design tokens"
+  ],
+  "cross_refs": [
+    "SellerFeedScreen.tsx",
+    "mobile/lib/features/feed/presentation/screens/seller_feed_screen.dart",
+    "SellerPostDetailScreen.tsx",
+    "mobile/lib/features/feed/presentation/screens/seller_post_detail_screen.dart",
+    "MyOffersScreen.tsx",
+    "mobile/lib/features/offers/presentation/screens/my_offers_screen.dart",
+    "SellerProfileSetupScreen.tsx",
+    "mobile/lib/features/sellers/presentation/screens/seller_profile_setup_screen.dart",
+    "SellerProfileViewScreen.tsx",
+    "mobile/lib/features/sellers/presentation/screens/seller_profile_screen.dart",
+    "SellerEarningsScreen.tsx",
+    "mobile/lib/features/sellers/presentation/screens/seller_earnings_screen.dart"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

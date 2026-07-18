@@ -1,0 +1,37 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/BATCH_3_PLAN.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Batch 3: Offers — Execution Plan",
+  "summary": "Implementation plan to restyle the Flutter offers experience (5 screens plus 2 modals) to match the TSX designs in designs/src/app/components.",
+  "scope": [
+    "offers feature",
+    "Flutter screens",
+    "post_offers_screen.dart",
+    "offer_detail_screen.dart",
+    "submit_offer_screen.dart",
+    "compare_offers_modal.dart",
+    "accept_offer_modal.dart",
+    "counter_offer_modal.dart",
+    "design tokens",
+    "UI restyling"
+  ],
+  "cross_refs": [
+    "designs/src/app/components/",
+    "designs/src/app/components/OffersListScreen.tsx",
+    "designs/src/app/components/OfferDetailScreen.tsx",
+    "designs/src/app/components/SubmitOfferScreen.tsx",
+    "designs/src/app/components/CompareOffersModal.tsx",
+    "designs/src/app/components/AcceptOfferModal.tsx",
+    "designs/src/app/components/CounterOfferModal.tsx",
+    "mobile/lib/features/offers/presentation/screens/post_offers_screen.dart",
+    "mobile/lib/features/offers/presentation/screens/offer_detail_screen.dart",
+    "mobile/lib/features/offers/presentation/screens/submit_offer_screen.dart",
+    "mobile/lib/features/offers/presentation/widgets/compare_offers_modal.dart",
+    "mobile/lib/features/offers/presentation/widgets/accept_offer_modal.dart",
+    "mobile/lib/features/offers/presentation/widgets/counter_offer_modal.dart"
+  ],
+  "locked": false,
+  "precedence": null
+}

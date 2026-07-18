@@ -1,0 +1,53 @@
+name: Deploy Canary
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: Canary stage to deploy
+        type: choice
+        options: [canary-10, canary-50, canary-100]
+        required: true
+
+jobs:
+  canary-deploy:
+    name: Deploy ${{ inputs.stage }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.stage }}  # required reviewer = Faisal (D-02)
+    steps:
+      - name: Pull image and restart api on canary VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.CANARY_VPS_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/reverse-marketplace
+            docker compose -f docker-compose.production.yml pull api
+            docker compose -f docker-compose.production.yml up -d --no-deps api
+            docker image prune -f
+
+      - name: Update Nginx weights on LB host
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.LB_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/sorcyn-lb
+            ./set-weights.sh ${{ inputs.stage }}
+
+      - name: Health check on canary host
+        env:
+          CANARY_HOST: ${{ secrets.CANARY_HOST }}
+        run: |
+          for i in $(seq 1 10); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${CANARY_HOST}/health" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Canary health check passed (attempt $i)"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Canary health check failed after 10 attempts"
+          exit 1

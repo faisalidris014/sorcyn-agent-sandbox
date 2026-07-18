@@ -1,0 +1,67 @@
+name: Security Scan
+# Phase 4 NFR-security. ZAP baseline + Snyk dependency audit.
+# T-S-07 mitigation: ZAP active scan targets staging ONLY -- never production.
+# Comment on RESEARCH.md section 13: "Run ZAP against staging.sorcyn.com,
+# never against api.sorcyn.com or the live frontend."
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'  # daily 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  snyk:
+    name: Snyk dependency audit (Node + Dart)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      # Soft-fail until first clean baseline is established. Findings still
+      # surface in the job log + annotations; the run does not fail the workflow.
+      - name: Snyk backend (Node -- package-lock.json)
+        continue-on-error: true
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --file=backend/package-lock.json --severity-threshold=high
+
+      - name: Snyk mobile (Dart/Flutter -- pubspec.yaml)
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          npm install -g snyk
+          snyk test --file=mobile/pubspec.yaml --severity-threshold=high
+
+  zap-baseline:
+    name: OWASP ZAP baseline scan (staging-only -- T-S-07)
+    # Skipped until staging.sorcyn.com is a real environment. Flip the repo
+    # variable STAGING_READY=true (Settings -> Variables) to enable scans.
+    if: ${{ vars.STAGING_READY == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: ZAP baseline against staging
+        uses: zaproxy/action-baseline@v0.13.0
+        with:
+          # STAGING ONLY -- never production (T-S-07 mitigation).
+          # If this target is ever changed to api.sorcyn.com or sorcyn.com,
+          # the audit assertion in closeout-audit.test.ts will fail and block merge.
+          target: 'https://staging.sorcyn.com'
+          rules_file_name: '.github/zap-rules.tsv'
+          fail_action: true
+
+      - name: Upload ZAP report artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: zap-baseline-report
+          path: report_html.html

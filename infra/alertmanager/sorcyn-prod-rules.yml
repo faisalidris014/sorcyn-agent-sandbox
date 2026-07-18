@@ -1,0 +1,30 @@
+# Sorcyn production Prometheus alert rules — Phase 4 D-06 / D-08.
+# Five rules, one severity tier (Slack-paging). Pairs with alertmanager.yml.
+groups:
+  - name: sorcyn-prod
+    rules:
+      - alert: ApiHigh5xxBurst
+        expr: rate(http_requests_total{status=~"5.."}[1m]) > 0.05 * rate(http_requests_total[1m])
+        for: 1m
+        annotations:
+          summary: ">5% 5xx rate over 1 min"
+      - alert: ApiP95LatencyBreach
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        annotations:
+          summary: "API p95 >500ms over 5 min"
+      - alert: ContainerDown
+        expr: up{job="sorcyn-api"} == 0
+        for: 1m
+        annotations:
+          summary: "API container down"
+      - alert: BullMQBacklog
+        expr: bullmq_queue_waiting_count{queue="notifications"} > 100
+        for: 5m
+        annotations:
+          summary: "Notifications queue backlog >100"
+      - alert: StripeWebhookFailureSpike
+        expr: rate(stripe_webhook_failures_total[5m]) > 0.1
+        for: 2m
+        annotations:
+          summary: "Stripe webhook failure rate >10%"

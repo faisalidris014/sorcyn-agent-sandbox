@@ -1,0 +1,33 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/AGENTS.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "GitNexus — Code Intelligence",
+  "summary": "Project guide for using GitNexus MCP tools to understand code, assess change impact, refactor safely, and keep the code-intelligence index fresh.",
+  "scope": [
+    "GitNexus MCP tooling",
+    "code intelligence index",
+    "impact analysis workflow",
+    "refactoring workflow",
+    "debugging workflow",
+    "pre-commit change detection",
+    "ReverseMarketplace repo indexing"
+  ],
+  "cross_refs": [
+    ".claude/skills/gitnexus/gitnexus-exploring/SKILL.md",
+    ".claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md",
+    ".claude/skills/gitnexus/gitnexus-debugging/SKILL.md",
+    ".claude/skills/gitnexus/gitnexus-refactoring/SKILL.md",
+    ".claude/skills/gitnexus/gitnexus-guide/SKILL.md",
+    ".claude/skills/gitnexus/gitnexus-cli/SKILL.md",
+    ".gitnexus/meta.json",
+    "gitnexus://repo/ReverseMarketplace/context",
+    "gitnexus://repo/ReverseMarketplace/clusters",
+    "gitnexus://repo/ReverseMarketplace/processes",
+    "gitnexus://repo/ReverseMarketplace/process/{name}"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

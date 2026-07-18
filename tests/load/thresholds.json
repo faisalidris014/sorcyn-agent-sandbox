@@ -1,0 +1,7 @@
+{
+  "http_req_duration{type:api}": ["p(95)<500"],
+  "http_req_duration{type:search}": ["p(95)<500"],
+  "http_req_duration{type:payment}": ["p(95)<3000"],
+  "http_req_failed": ["rate<0.01"],
+  "iteration_duration": ["p(95)<5000"]
+}

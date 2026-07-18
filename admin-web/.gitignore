@@ -1,0 +1,23 @@
+# dependencies
+/node_modules
+
+# next
+/.next
+/out
+
+# build artifacts
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# env
+.env*.local
+
+# typescript
+next-env.d.ts
+*.tsbuildinfo
+
+# vercel
+.vercel

@@ -1,0 +1,30 @@
+setup:
+  - project: sorcyn-backend
+    config: dev
+    path: .
+
+# Doppler project + config mapping for Sorcyn.
+#
+# - `project: sorcyn-backend` — the Doppler project that holds Fastify backend
+#   secrets (Stripe, Resend, R2, FCM, JWT, DATABASE_URL, etc.). Provisioned
+#   manually in the Doppler dashboard.
+#
+# - `config: dev` — shared development config used by every operator on the
+#   team. Faisal and Mohamed both read/write the same keys so a new secret is
+#   added in one place and immediately available on every machine. Per-dev
+#   branched configs (`dev_personal`) are intentionally NOT used — the team is
+#   small enough that one shared dev config is simpler than maintaining a
+#   parent/branch hierarchy. Configs `staging` and `prd` live in the same
+#   project and are NOT committed here (operators pick them at deploy time).
+#
+# - `path: .` — binds the Doppler config to the repo root, matching how
+#   `scripts/sorcyn` operates (`doppler configure --scope "$REPO_ROOT"` and
+#   `doppler run -- ...` from the repo root). The backend reads the injected
+#   env vars regardless of directory, so root binding keeps a single scope for
+#   the whole repo.
+#
+# Mobile (Flutter) does not currently use Doppler — its only secrets are bundled
+# at build time (Firebase config files, etc.) and live in encrypted CI secrets.
+# Revisit if the Flutter app starts consuming runtime API keys.
+#
+# Setup instructions: see `CLAUDE.md` § "Secrets Management — Doppler".

@@ -1,0 +1,26 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/Reverse Marketplace Feb 8th.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Reverse Marketplace",
+  "summary": "Feb 8 meeting transcript discussing escrow with before/after photo evidence, fee structure, complex multi-contractor projects, AI-assisted posts, jobs/staffing, and seller verification tiers.",
+  "scope": [
+    "escrow flow",
+    "before/after photo evidence",
+    "dispute resolution",
+    "fee structure",
+    "complex multi-contractor projects",
+    "AI-assisted posting",
+    "seller verification",
+    "license and insurance requirements",
+    "jobs/staffing module",
+    "messaging UX",
+    "launch strategy",
+    "competitive analysis (Craigslist, Mercari, Thumbtack, Facebook Marketplace)"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": "Granola meeting transcript (prose-only conversational format). Contains product ideas and tentative decisions but lacks PRD/SPEC/ADR structural hallmarks (no user stories, acceptance criteria, schemas, or formal Decision/Consequences sections). Classified as DOC for context-only precedence."
+}

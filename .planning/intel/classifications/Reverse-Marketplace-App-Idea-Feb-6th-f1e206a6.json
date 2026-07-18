@@ -1,0 +1,32 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/Reverse Marketplace App Idea Feb 6th.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Reverse Marketplace App Idea",
+  "summary": "Feb 6th meeting transcript brainstorming the reverse marketplace concept: scope, categories, AI-assisted posting, fees, escrow, reviews, and DFW-local launch strategy.",
+  "scope": [
+    "reverse marketplace concept",
+    "buyer-posts-seller-bids flow",
+    "product categories (products, services, jobs)",
+    "B2B / B2C / C2C account types",
+    "AI chat assisted post creation",
+    "in-app messaging",
+    "transaction fees and monetization model",
+    "escrow / authorization hold payment flow",
+    "dispute resolution",
+    "reviews and ratings (buyers and sellers)",
+    "seller verification (EIN, licenses, insurance)",
+    "geographic launch strategy (DFW first)",
+    "competitive analysis (Thumbtack, Upwork, Facebook Marketplace, eBay, Mercari, OfferUp, JingleBid, Procurex)",
+    "single-offer-per-seller anti-spam rule",
+    "time-limited posts",
+    "saved sellers / repeat-customer relationships",
+    "color scheme (white + purple)",
+    "iOS + Android + web platforms"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

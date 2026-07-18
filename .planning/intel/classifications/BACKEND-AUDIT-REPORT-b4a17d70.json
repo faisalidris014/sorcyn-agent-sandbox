@@ -1,0 +1,38 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/BACKEND_AUDIT_REPORT.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Backend Audit Report",
+  "summary": "Automated audit of the ReverseMarketplace backend at commit 804c8ec scoring implementation completeness (127/168 items, 75.6%) across feature categories.",
+  "scope": [
+    "backend",
+    "authentication",
+    "user management",
+    "buyer posting",
+    "exclusivity window",
+    "seller offers",
+    "Stripe Connect",
+    "escrow",
+    "messaging",
+    "BullMQ jobs",
+    "admin moderation",
+    "test suite",
+    "implementation gaps"
+  ],
+  "cross_refs": [
+    "CLAUDE.md",
+    "backend/src/modules/auth/auth.service.ts",
+    "backend/src/modules/users/users.service.ts",
+    "backend/src/modules/posts/posts.service.ts",
+    "backend/src/modules/posts/ai-assist.service.ts",
+    "backend/src/modules/posts/posts.schemas.ts",
+    "backend/src/modules/categories/categories.service.ts",
+    "backend/src/common/utils/storage.ts",
+    "backend/src/config/geocoding.ts",
+    "prisma/schema.prisma"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

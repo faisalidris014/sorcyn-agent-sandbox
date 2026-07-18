@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+#
+# bootstrap-db.sh — one command to provision a working local database setup
+# (issue #133). Idempotent: safe to run repeatedly.
+#
+# What it does, in order:
+#   1. Ensure backend/.env exists (copies .env.example if missing, then stops).
+#   2. Derive dev + test database names/URLs from the single source of truth:
+#      the DATABASE_URL in .env. The test DB is "<devname>_test" with the SAME
+#      user/host — so it always matches your machine (fixes the .env vs
+#      .env.example user drift).
+#   3. Create the dev and test databases if they don't exist.
+#   4. Migrate + seed the dev DB; apply the full-text-search trigger.
+#   5. Generate backend/.env.test (gitignored, per-machine) from the template.
+#   6. Migrate the test DB schema.
+#   7. Run db:doctor to verify, then print the next command.
+#
+# Usage: npm run db:bootstrap   (from backend/)
+set -euo pipefail
+
+cd "$(dirname "$0")/.."   # → backend/
+
+echo "▶ Sorcyn DB bootstrap (issue #133)"
+
+# ── 1. .env present? ─────────────────────────────────────────────────────────
+if [ ! -f .env ]; then
+  cp .env.example .env
+  echo "✖ No .env found — created one from .env.example."
+  echo "  Fill in DATABASE_URL (and secrets), then re-run: npm run db:bootstrap"
+  exit 1
+fi
+
+DEV_URL=$(grep -E '^DATABASE_URL=' .env | head -1 | cut -d= -f2- | tr -d '"')
+if [ -z "${DEV_URL:-}" ]; then
+  echo "✖ DATABASE_URL is not set in .env"; exit 1
+fi
+
+# ── Guard: never bootstrap against a hosted/shared DB ─────────────────────────
+# This script CREATEs and (for tests) push/--accept-data-loss against
+# "<db>_test" on the SAME host as .env's DATABASE_URL. That's safe for local
+# Postgres but catastrophic against the shared Supabase dev DB. The shared DB is
+# configured via Doppler (DATABASE_URL in the `dev` config), NOT in .env — keep
+# .env pointed at LOCAL Postgres. See docs/DATABASE_CONFIG.md.
+if echo "$DEV_URL" | grep -qiE 'supabase\.(com|co)|pooler\.'; then
+  echo "✖ .env DATABASE_URL points at a hosted Supabase DB."
+  echo "  bootstrap-db.sh provisions LOCAL dev + test databases only."
+  echo "  Put the shared Supabase URL in Doppler (dev config), not .env, and"
+  echo "  keep .env's DATABASE_URL pointed at local Postgres. See docs/DATABASE_CONFIG.md."
+  exit 1
+fi
+
+# ── 2. Derive names + URLs (robust URL parsing via node) ─────────────────────
+eval "$(node -e '
+  const src = process.argv[1];
+  const dev = new URL(src).pathname.replace(/^\//,"").split("?")[0];
+  const test = dev.endsWith("_test") ? dev : dev + "_test";
+  const withDb = (name) => { const u = new URL(src); u.pathname = "/" + name; return u.toString(); };
+  console.log(`DEV_DB=${JSON.stringify(dev)}`);
+  console.log(`TEST_DB=${JSON.stringify(test)}`);
+  console.log(`ADMIN_URL=${JSON.stringify(withDb("postgres"))}`);
+  console.log(`TEST_URL=${JSON.stringify(withDb(test))}`);
+' "$DEV_URL")"
+
+echo "  dev DB : $DEV_DB"
+echo "  test DB: $TEST_DB"
+
+# ── 3. Create databases if missing ───────────────────────────────────────────
+# Sets <flagvar>=1 when it actually creates the database (vs it already existing),
+# so we only push a fresh schema onto a brand-new DB and never disturb an
+# operator's existing dev DB.
+DEV_CREATED=0
+TEST_CREATED=0
+create_db_if_missing() {
+  local name="$1" flagvar="$2"
+  if psql "$ADMIN_URL" -tAc "SELECT 1 FROM pg_database WHERE datname='${name}'" | grep -q 1; then
+    echo "  ✔ database '${name}' exists"
+  else
+    echo "  + creating database '${name}'"
+    psql "$ADMIN_URL" -c "CREATE DATABASE \"${name}\""
+    eval "${flagvar}=1"
+  fi
+}
+create_db_if_missing "$DEV_DB" DEV_CREATED
+create_db_if_missing "$TEST_DB" TEST_CREATED
+
+# ── 4. Sync schema + seed dev, apply search trigger ──────────────────────────
+# Schema provisioning uses `db push` (not `migrate deploy`): it makes the DB match
+# schema.prisma exactly. The committed migrations have drifted behind
+# schema.prisma, so a fresh `migrate deploy` produces a DB missing columns the
+# Prisma client expects (issue #133).
+#
+# We only push the DEV schema when we just CREATED the dev DB. An existing dev DB
+# is left untouched — some have legacy columns (e.g. is_business) that `db push`
+# would want to DROP. We never risk an operator's dev data; if your existing dev
+# DB is broken, recreate it (drop + re-run bootstrap) or push manually.
+if [ "$DEV_CREATED" = "1" ]; then
+  echo "▶ Fresh dev DB — syncing schema (prisma db push)…"
+  DATABASE_URL="$DEV_URL" npx prisma db push
+else
+  echo "▶ Existing dev DB — leaving schema as-is (not running db push)."
+fi
+echo "▶ Applying full-text-search trigger to dev DB…"
+psql "$DEV_URL" -f prisma/custom-migrations/001_search_vector_trigger.sql >/dev/null
+echo "▶ Seeding dev DB (idempotent)…"
+DATABASE_URL="$DEV_URL" npm run --silent db:seed
+
+# ── 5. Generate .env.test (derived, gitignored) ──────────────────────────────
+echo "▶ Writing .env.test (derived from .env)…"
+cat > .env.test <<EOF
+# AUTO-GENERATED by scripts/bootstrap-db.sh from .env — do not edit by hand.
+# Per-machine and gitignored. Template/reference: .env.test.example.
+NODE_ENV=test
+DATABASE_URL=${TEST_URL}
+REDIS_URL=redis://localhost:6379/1
+JWT_ACCESS_SECRET=test-access-secret-that-is-at-least-32-chars-long
+JWT_REFRESH_SECRET=test-refresh-secret-that-is-at-least-32-chars-long
+JWT_ACCESS_EXPIRES_IN=45s
+EOF
+
+# ── 6. Sync test DB schema (db push — matches schema.prisma, see step 4) ──────
+# --accept-data-loss is safe here: the test DB holds only disposable fixtures and
+# global-setup purges it each run. This guarantees the test schema always
+# converges to schema.prisma.
+echo "▶ Syncing test DB schema (prisma db push)…"
+DATABASE_URL="$TEST_URL" npx prisma db push --accept-data-loss
+
+# ── 7. Verify + hand off ─────────────────────────────────────────────────────
+echo "▶ Verifying dev DB…"
+npm run --silent db:doctor
+
+echo ""
+echo "✔ Bootstrap complete. Dev seed accounts are ready and the test DB is isolated."
+echo "  Next:  npm run dev        # start the backend"
+echo "         npm run db:doctor  # re-verify anytime"

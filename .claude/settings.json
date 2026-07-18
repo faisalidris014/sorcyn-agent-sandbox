@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "//": "SHARED team config — committed so both operators' agents get the realtime work-claim hooks. Personal settings live in the gitignored settings.local.json. See docs/REALTIME_SYNC.md.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/scripts/sorcyn\" sync 2>&1; exit 0",
+            "timeout": 45,
+            "statusMessage": "sync: pulling teammate work from origin/main..."
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/scripts/devsync/claim.mjs\" session-start",
+            "timeout": 10,
+            "statusMessage": "devsync: registering work claim..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/scripts/devsync/claim.mjs\" pre-edit",
+            "timeout": 10,
+            "statusMessage": "devsync: checking for collisions..."
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/scripts/devsync/claim.mjs\" release",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

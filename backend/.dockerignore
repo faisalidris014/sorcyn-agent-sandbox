@@ -1,0 +1,15 @@
+node_modules
+dist
+.env
+.env.*
+*.log
+coverage
+tests
+scripts
+.git
+.gitignore
+*.md
+vitest.config.ts
+tsconfig.build.json
+prisma/seed.ts
+prisma/custom-migrations

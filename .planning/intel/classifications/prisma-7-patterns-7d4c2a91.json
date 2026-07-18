@@ -1,0 +1,32 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/prisma-7-patterns.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Prisma 7 Patterns",
+  "summary": "Migration guide and pattern reference for Prisma 7 in this project, covering driver adapter setup, JSONB handling, raw SQL, transactions, and common pitfalls.",
+  "scope": [
+    "Prisma 7",
+    "@prisma/adapter-pg",
+    "prisma.config.ts",
+    "PostgreSQL tsvector",
+    "JSONB columns",
+    "UUID primary keys",
+    "soft deletes",
+    "Prisma.JsonNull",
+    "$queryRawUnsafe full-text search",
+    "Prisma.InputJsonValue cast",
+    "$transaction array form",
+    "interactive $transaction",
+    "compound unique keys"
+  ],
+  "cross_refs": [
+    "prisma/custom-migrations/001_search_vector_trigger.sql",
+    "backend/prisma.config.ts",
+    "backend/src/config/database.ts",
+    "sellers.service.ts"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

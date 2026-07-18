@@ -1,0 +1,23 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/Reverse Marketplace PRD Review Feb 11th.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Reverse Marketplace PRD Review",
+  "summary": "Granola meeting transcript reviewing the PRD readiness checklist and debating fee structure (local free vs. service fee) ahead of DFW launch.",
+  "scope": [
+    "PRD review",
+    "fee structure",
+    "local transaction pricing",
+    "AI cost tradeoffs",
+    "Phase 1 MVP breakdown",
+    "DFW launch timeline",
+    "section 6 (fees)",
+    "section 7 (phasing)",
+    "section 8 (functional requirements)"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": "Meeting transcript (Granola export) — prose-only monologue with no frontmatter, no user stories, acceptance criteria, decisions/consequences, or schemas. Reviews/debates an external PRD rather than defining requirements itself; classified as DOC for context."
+}

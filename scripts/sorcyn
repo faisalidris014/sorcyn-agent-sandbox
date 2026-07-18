@@ -1,0 +1,457 @@
+#!/usr/bin/env bash
+# sorcyn — one-command launcher for the Sorcyn dev environment.
+# Run from anywhere; auto-locates the project root. See `sorcyn help`.
+
+set -u
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+DIM='\033[2m'
+RESET='\033[0m'
+
+die()  { printf "${RED}✗${RESET} %s\n" "$1" >&2; exit 1; }
+info() { printf "${DIM}→${RESET} %s\n" "$1"; }
+
+# ─── Locate the repo root ───────────────────────────────────────────────────
+# Resolution order:
+#   1. $SORCYN_HOME
+#   2. ~/.sorcyn/config (single line: absolute path)
+#   3. Walk up from CWD looking for a .sorcyn-root marker
+#   4. Common locations (broad sweep)
+#   5. Spotlight (mdfind) — finds the marker file anywhere on disk
+#   6. Prompt the user and persist the answer
+#
+# Whenever a method other than (2) succeeds, the result is written back to
+# the config so the next invocation short-circuits via (2). The user should
+# only ever be prompted once per machine in the worst case.
+persist_config() {
+  local path="$1"
+  mkdir -p "$HOME/.sorcyn"
+  printf "%s\n" "$path" > "$HOME/.sorcyn/config"
+}
+
+read_config() {
+  local cfg="$HOME/.sorcyn/config"
+  [ -f "$cfg" ] || return 1
+  # Strip ONLY trailing CR/LF (not all whitespace) — preserves spaces in paths.
+  local saved
+  saved="$(head -n1 "$cfg")"
+  saved="${saved%$'\r'}"
+  saved="${saved%$'\n'}"
+  [ -n "$saved" ] && [ -f "$saved/.sorcyn-root" ] && echo "$saved"
+}
+
+locate_repo() {
+  # 1. Explicit env override.
+  if [ -n "${SORCYN_HOME:-}" ] && [ -f "$SORCYN_HOME/.sorcyn-root" ]; then
+    persist_config "$SORCYN_HOME"
+    echo "$SORCYN_HOME"; return
+  fi
+
+  # 2. Saved config.
+  local saved
+  if saved="$(read_config)"; then
+    echo "$saved"; return
+  fi
+
+  # 3. Walk up from CWD.
+  local dir="$PWD"
+  while [ "$dir" != "/" ]; do
+    if [ -f "$dir/.sorcyn-root" ]; then
+      persist_config "$dir"
+      echo "$dir"; return
+    fi
+    dir="$(dirname "$dir")"
+  done
+
+  # 4. Common locations.
+  local candidate
+  for candidate in \
+      "$HOME/ReverseMarketplace" \
+      "$HOME/Projects/ReverseMarketplace" \
+      "$HOME/projects/ReverseMarketplace" \
+      "$HOME/Code/ReverseMarketplace" \
+      "$HOME/code/ReverseMarketplace" \
+      "$HOME/dev/ReverseMarketplace" \
+      "$HOME/Developer/ReverseMarketplace" \
+      "$HOME/Documents/ReverseMarketplace" \
+      "$HOME/Desktop/ReverseMarketplace" \
+      "$HOME/Sorcyn" \
+      "$HOME/sorcyn"; do
+    if [ -f "$candidate/.sorcyn-root" ]; then
+      persist_config "$candidate"
+      echo "$candidate"; return
+    fi
+  done
+
+  # 5. Spotlight — slow-ish but a guaranteed find on macOS for any clone
+  #    location not covered above. Only fires if previous methods missed.
+  if command -v mdfind >/dev/null 2>&1; then
+    local hit
+    hit="$(mdfind -name .sorcyn-root 2>/dev/null | head -n1)"
+    if [ -n "$hit" ] && [ -f "$hit" ]; then
+      local found_root
+      found_root="$(dirname "$hit")"
+      printf "${GREEN}✓${RESET} Auto-discovered repo at %s (saved for next time)\n" "$found_root" >&2
+      persist_config "$found_root"
+      echo "$found_root"; return
+    fi
+  fi
+
+  # 6. Last resort — prompt. Only reached if all auto-detection failed.
+  if [ ! -t 0 ]; then
+    die "Could not auto-locate the ReverseMarketplace repo. Set SORCYN_HOME or run sorcyn from inside the repo once to register it."
+  fi
+  printf "${YELLOW}Where is your ReverseMarketplace clone?${RESET}\n" >&2
+  printf "Enter absolute path (e.g. /Users/$USER/Documents/ReverseMarketplace): " >&2
+  local answer
+  read -r answer
+  answer="${answer/#\~/$HOME}"
+  if [ ! -f "$answer/.sorcyn-root" ]; then
+    die "No .sorcyn-root marker found at: $answer"
+  fi
+  persist_config "$answer"
+  printf "${GREEN}✓${RESET} Saved to ~/.sorcyn/config — won't ask again.\n" >&2
+  echo "$answer"
+}
+
+REPO_ROOT="$(locate_repo)"
+[ -z "$REPO_ROOT" ] && die "Could not locate ReverseMarketplace repo"
+
+# ─── Subcommands ────────────────────────────────────────────────────────────
+cmd_help() {
+  cat <<EOF
+sorcyn — Sorcyn dev launcher
+project: $REPO_ROOT
+
+USAGE
+  sorcyn <command> [args]
+
+COMMANDS
+  dev                 Sync main into your branch, then start the backend dev
+                      server (Fastify, port 3000). Skip sync: SORCYN_NO_SYNC=1
+  sync                Pull teammate work (merged to main) into your current
+                      branch. Auto-runs before 'dev' and 'mobile'
+                      (skip with SORCYN_NO_SYNC=1). Fail-open and safe.
+  mobile [device]     Run the Flutter app (optionally on a specific device id)
+  db <sub>            Manage the dev database:
+                        up | down | logs        Postgres + Redis containers (default: up)
+                        verify-email <email>    Mark a dev account's email verified
+  doctor              Verify Docker, Node, .env, and service reachability
+  bootstrap           First-time setup: doctor → db up → install → migrate → seed
+  secrets <sub>       Shared secrets via Doppler: status | setup | pull
+  all                 Open db, backend, and mobile in 3 Terminal tabs (macOS)
+  logs <backend|db>   Tail logs for the named service
+  where               Print the resolved project path
+  help                Show this message
+
+Run any command from any directory — the launcher locates the repo for you.
+EOF
+}
+
+cmd_where() { echo "$REPO_ROOT"; }
+
+cmd_doctor() { "$REPO_ROOT/scripts/check-prereqs.sh"; }
+
+# ─── Doppler integration ────────────────────────────────────────────────────
+# Returns 0 if Doppler is installed AND the repo has a doppler.yaml AND the
+# user is authenticated for the project. We use this to decide whether to
+# wrap `npm run dev` in `doppler run --`.
+doppler_ready() {
+  command -v doppler >/dev/null 2>&1 || return 1
+  [ -f "$REPO_ROOT/doppler.yaml" ] || return 1
+  ( cd "$REPO_ROOT" && doppler secrets --silent >/dev/null 2>&1 ) || return 1
+  return 0
+}
+
+cmd_secrets() {
+  local sub="${1:-status}"
+  case "$sub" in
+    status)
+      if ! command -v doppler >/dev/null 2>&1; then
+        printf "${YELLOW}!${RESET} Doppler CLI not installed.\n"
+        printf "  Install: ${DIM}brew install dopplerhq/cli/doppler${RESET}\n"
+        printf "  Then:    ${DIM}doppler login${RESET}\n"
+        return 1
+      fi
+      if [ ! -f "$REPO_ROOT/doppler.yaml" ]; then
+        printf "${YELLOW}!${RESET} This repo isn't configured for Doppler yet.\n"
+        printf "  Ask the project owner to run: ${DIM}sorcyn secrets setup${RESET}\n"
+        return 1
+      fi
+      cd "$REPO_ROOT" && doppler configure --scope "$REPO_ROOT"
+      printf "${GREEN}✓${RESET} Doppler is configured for this project.\n"
+      ;;
+    setup)
+      # Project-owner-only: walks through one-time `doppler setup` and writes doppler.yaml.
+      command -v doppler >/dev/null 2>&1 \
+        || die "Install Doppler first: brew install dopplerhq/cli/doppler"
+      cd "$REPO_ROOT" || die "cd failed"
+      info "doppler setup --no-interactive=false"
+      doppler setup
+      info "Writing doppler.yaml so collaborators inherit the project mapping"
+      doppler configure get --scope "$REPO_ROOT" > /dev/null
+      printf "${GREEN}✓${RESET} Doppler project setup complete. Commit ${DIM}doppler.yaml${RESET} so collaborators inherit it.\n"
+      ;;
+    pull)
+      # Manual fallback: write Doppler secrets to backend/.env. Most flows use
+      # `doppler run` instead and never touch disk — see cmd_dev.
+      doppler_ready || die "Doppler not ready — run: sorcyn secrets status"
+      cd "$REPO_ROOT" || die "cd failed"
+      info "doppler secrets download --no-file --format env > backend/.env.doppler"
+      doppler secrets download --no-file --format env > "$REPO_ROOT/backend/.env.doppler"
+      printf "${GREEN}✓${RESET} Wrote backend/.env.doppler (gitignored). Source it or merge into .env as needed.\n"
+      ;;
+    *) die "Unknown secrets subcommand: $sub (try status|setup|pull)" ;;
+  esac
+}
+
+cmd_db() {
+  cd "$REPO_ROOT" || die "cd failed"
+  local sub="${1:-up}"
+  case "$sub" in
+    up)   info "docker compose up -d"; docker compose up -d ;;
+    down) info "docker compose down";  docker compose down ;;
+    logs) info "docker compose logs -f"; docker compose logs -f ;;
+    verify-email) shift; db_verify_email "$@" ;;
+    *)    die "Unknown db subcommand: $sub (try up|down|logs|verify-email)" ;;
+  esac
+}
+
+# Mark a DEV account's email as verified (dev-only convenience — there is no
+# inbox in local dev). Flips users.email_verified and the matching
+# seller_profiles.email_verified so the verify-email gate clears.
+#
+# CRITICAL: this MUST write to the same DB the running app reads. Since #214
+# (shared Supabase dev DB), `sorcyn dev` wraps the backend in `doppler run --`,
+# so the app reads Doppler's DATABASE_URL — NOT backend/.env's local Postgres.
+# Targeting the wrong DB makes the UPDATE match 0 rows while psql still exits 0,
+# producing a false "✓ success" while the app keeps blocking the account.
+db_verify_email() {
+  local email="${1:-}"
+  [ -z "$email" ] && die "Usage: sorcyn db verify-email <email>"
+  case "$email" in
+    *@*.*) : ;;
+    *) die "Not a valid email: $email" ;;
+  esac
+  command -v psql >/dev/null 2>&1 || die "psql not found — install the PostgreSQL client"
+
+  # Resolve the SAME DATABASE_URL the app uses: Doppler when it's ready
+  # (mirrors cmd_dev's `doppler run`), else fall back to backend/.env.
+  local url src
+  if doppler_ready; then
+    url="$(cd "$REPO_ROOT" && doppler secrets get DATABASE_URL --plain 2>/dev/null)"
+    src="Doppler (shared Supabase dev DB)"
+  fi
+  if [ -z "${url:-}" ]; then
+    local env_file="$REPO_ROOT/backend/.env"
+    [ -f "$env_file" ] || die "Could not resolve DATABASE_URL — Doppler isn't ready and backend/.env is missing"
+    url="$(grep -E '^DATABASE_URL=' "$env_file" | head -n1 | cut -d= -f2- | tr -d "\"'")"
+    src="backend/.env (local dev DB)"
+  fi
+  [ -z "$url" ] && die "DATABASE_URL not set (checked Doppler and backend/.env)"
+
+  # Fail loudly when the account isn't in the DB the app reads — otherwise the
+  # UPDATE matches 0 rows, psql still exits 0, and we'd print a false "✓".
+  local exists
+  exists="$(psql "$url" -tAc "SELECT 1 FROM users WHERE email = '$email';" 2>/dev/null | tr -d '[:space:]')"
+  if [ "$exists" != "1" ]; then
+    die "No account '$email' in $src — the app reads this DB, so there's nothing to verify. Seed it first, or confirm you're pointed at the right DB."
+  fi
+
+  info "Marking $email email_verified = true in $src"
+  psql "$url" -v ON_ERROR_STOP=1 \
+    -c "UPDATE users SET email_verified = true WHERE email = '$email';" \
+    -c "UPDATE seller_profiles sp SET email_verified = true FROM users u WHERE sp.user_id = u.user_id AND u.email = '$email';" \
+    || die "psql update failed (is the target DB reachable?)"
+  printf "${GREEN}✓${RESET} %s verified in %s — in the app, tap \"Already verified?\" to refresh.\n" "$email" "$src"
+}
+
+# ─── Stay in sync with the team ─────────────────────────────────────────────
+# Pull teammate work (merged to main) into the CURRENT branch in one shot.
+# Editor auto-fetch keeps refs current automatically; this is the deliberate
+# step that puts main's changes into your working files. FAIL-OPEN: any hiccup
+# (offline, conflict) leaves your branch exactly as it was and returns non-zero,
+# so it can never block `sorcyn dev`. Set SORCYN_NO_SYNC=1 to skip entirely.
+cmd_sync() {
+  cd "$REPO_ROOT" || { printf "${YELLOW}!${RESET} sync: cd failed\n" >&2; return 1; }
+  command -v git >/dev/null 2>&1 || { printf "${YELLOW}!${RESET} sync: git not found\n" >&2; return 1; }
+
+  local branch
+  branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" \
+    || { printf "${YELLOW}!${RESET} sync: not a git repo\n" >&2; return 1; }
+
+  info "git fetch origin"
+  git fetch origin --quiet \
+    || { printf "${YELLOW}!${RESET} sync: fetch failed (offline?) — skipping\n" >&2; return 1; }
+
+  # Already current with main? Nothing to do.
+  if git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
+    printf "${GREEN}✓${RESET} %s already has everything from origin/main\n" "$branch"
+    return 0
+  fi
+
+  # Stash local edits (tracked + untracked) so the merge is clean.
+  local stashed=0
+  if ! git diff --quiet || ! git diff --cached --quiet \
+       || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    info "stashing local changes"
+    git stash push -u -m "sorcyn-sync-autostash" >/dev/null \
+      || { printf "${YELLOW}!${RESET} sync: stash failed — skipping\n" >&2; return 1; }
+    stashed=1
+  fi
+
+  info "merging origin/main into $branch"
+  if git merge --no-edit origin/main >/dev/null 2>&1; then
+    printf "${GREEN}✓${RESET} %s updated from origin/main\n" "$branch"
+  else
+    git merge --abort 2>/dev/null
+    [ "$stashed" -eq 1 ] && git stash pop >/dev/null 2>&1
+    printf "${RED}✗${RESET} sync: merge conflict with origin/main — aborted, branch untouched.\n" >&2
+    printf "   Resolve manually: ${YELLOW}git merge origin/main${RESET}\n" >&2
+    return 1
+  fi
+
+  # Re-apply local edits.
+  if [ "$stashed" -eq 1 ]; then
+    info "restoring local changes"
+    if ! git stash pop >/dev/null 2>&1; then
+      printf "${YELLOW}!${RESET} sync: your local changes conflict with the update.\n" >&2
+      printf "   Resolve the marked files, then drop the autostash: ${YELLOW}git stash drop${RESET}\n" >&2
+      return 1
+    fi
+  fi
+  return 0
+}
+
+cmd_dev() {
+  # Pull teammate changes from main first. Fail-open: never blocks dev.
+  if [ "${SORCYN_NO_SYNC:-}" != "1" ]; then
+    cmd_sync || printf "${YELLOW}!${RESET} continuing to start dev without syncing\n" >&2
+  fi
+  cd "$REPO_ROOT/backend" || die "backend/ not found"
+  if [ ! -d node_modules ]; then
+    die "backend/node_modules is missing — run: ${YELLOW}sorcyn bootstrap${RESET} first (installs deps, runs migrations, seeds db)"
+  fi
+  if [ ! -f .env ]; then
+    die "backend/.env is missing — run: ${YELLOW}sorcyn bootstrap${RESET} (or: cp backend/.env.example backend/.env)"
+  fi
+  # If Doppler is configured + authenticated, wrap npm run dev so secrets are
+  # injected at runtime (never written to disk). Otherwise fall back to .env.
+  if doppler_ready; then
+    info "doppler run -- npm run dev  (secrets injected from Doppler)"
+    cd "$REPO_ROOT" && exec doppler run -- bash -c 'cd backend && npm run dev'
+  fi
+  info "cd backend && npm run dev  (using backend/.env)"
+  exec npm run dev
+}
+
+cmd_mobile() {
+  # Pull teammate changes from main first. Fail-open: never blocks the app.
+  # Mirrors cmd_dev so backend + Flutter runs both sync before starting.
+  if [ "${SORCYN_NO_SYNC:-}" != "1" ]; then
+    cmd_sync || printf "${YELLOW}!${RESET} continuing to start the app without syncing\n" >&2
+  fi
+  cd "$REPO_ROOT/mobile" || die "mobile/ not found"
+  if [ ! -d .dart_tool ] && [ ! -f .packages ]; then
+    die "Flutter deps not installed — run: ${YELLOW}cd mobile && flutter pub get${RESET}"
+  fi
+  if [ -n "${1:-}" ]; then
+    info "flutter run -d $1"
+    exec flutter run -d "$1"
+  else
+    info "flutter run"
+    exec flutter run
+  fi
+}
+
+cmd_bootstrap() {
+  # Hard prereqs bootstrap cannot fix on its own — abort cleanly if missing.
+  if ! command -v docker >/dev/null 2>&1; then
+    die "Docker is not installed. Install Docker Desktop (https://www.docker.com/products/docker-desktop/) — or OrbStack / Colima — and re-run: ${YELLOW}sorcyn bootstrap${RESET}"
+  fi
+  if ! docker info >/dev/null 2>&1; then
+    die "Docker is installed but the daemon is not running. Open Docker Desktop and re-run: ${YELLOW}sorcyn bootstrap${RESET}"
+  fi
+  if ! command -v node >/dev/null 2>&1; then
+    die "Node is not installed. Install Node 20 LTS (nvm install 20 && nvm use 20) and re-run: ${YELLOW}sorcyn bootstrap${RESET}"
+  fi
+  local node_major
+  node_major="$(node -p 'process.versions.node.split(".")[0]')"
+  if [ "$node_major" -lt 20 ]; then
+    die "Node $node_major is too old (need >=20). Run: nvm install 20 && nvm use 20, then re-run: ${YELLOW}sorcyn bootstrap${RESET}"
+  fi
+
+  # Things bootstrap fixes itself.
+  if [ ! -f "$REPO_ROOT/backend/.env" ]; then
+    info "cp backend/.env.example backend/.env"
+    cp "$REPO_ROOT/backend/.env.example" "$REPO_ROOT/backend/.env"
+  fi
+
+  cd "$REPO_ROOT" || die "cd failed"
+  info "docker compose up -d"
+  docker compose up -d || die "Failed to start containers — see error above"
+
+  cd "$REPO_ROOT/backend" || die "backend/ not found"
+  info "npm install"
+  npm install
+  info "npx prisma migrate dev"
+  npx prisma migrate dev
+  info "npx prisma db seed"
+  npx prisma db seed
+
+  # Final verification — full doctor should pass now.
+  printf "\n${DIM}→${RESET} Final verification (sorcyn doctor)\n"
+  "$REPO_ROOT/scripts/check-prereqs.sh" \
+    || die "Bootstrap finished but the doctor still reports issues — fix above and re-run sorcyn doctor"
+
+  printf "\n${GREEN}✓ Bootstrap complete.${RESET} Try: ${YELLOW}sorcyn dev${RESET}\n"
+}
+
+cmd_logs() {
+  local target="${1:-}"
+  [ -z "$target" ] && die "Usage: sorcyn logs <backend|db>"
+  case "$target" in
+    db|postgres|redis)
+      cd "$REPO_ROOT" && exec docker compose logs -f "$target" 2>/dev/null \
+        || exec docker compose logs -f
+      ;;
+    backend|api)
+      die "Backend logs stream to its own terminal — start it with: sorcyn dev"
+      ;;
+    *) die "Unknown log target: $target (try backend|db|postgres|redis)" ;;
+  esac
+}
+
+cmd_all() {
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    die "sorcyn all uses macOS Terminal.app — on Linux, open tabs manually and run: sorcyn db / sorcyn dev / sorcyn mobile"
+  fi
+  info "Opening 3 Terminal tabs: db, backend, mobile"
+  osascript <<EOS
+tell application "Terminal"
+  activate
+  do script "sorcyn db up && sorcyn logs db"
+  do script "sleep 3 && sorcyn dev"
+  do script "sleep 5 && sorcyn mobile"
+end tell
+EOS
+}
+
+# ─── Dispatch ───────────────────────────────────────────────────────────────
+SUB="${1:-help}"; shift || true
+case "$SUB" in
+  help|-h|--help) cmd_help ;;
+  where)          cmd_where ;;
+  doctor)         cmd_doctor ;;
+  db)             cmd_db "$@" ;;
+  dev|backend)    cmd_dev ;;
+  sync)           cmd_sync ;;
+  mobile|flutter) cmd_mobile "$@" ;;
+  bootstrap)      cmd_bootstrap ;;
+  secrets)        cmd_secrets "$@" ;;
+  logs)           cmd_logs "$@" ;;
+  all)            cmd_all ;;
+  *)              die "Unknown command: $SUB (try: sorcyn help)" ;;
+esac

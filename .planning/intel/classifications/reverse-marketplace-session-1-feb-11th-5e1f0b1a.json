@@ -1,0 +1,22 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/Reverse Marketplace Session 1 Feb 11th.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Reverse Marketplace Session (Feb 11)",
+  "summary": "Granola meeting transcript covering early product brainstorming: app name search, purple/white color scheme, single-login buyer/seller mode switching, AI-assisted buyer posts, and competitor UI references.",
+  "scope": [
+    "app naming",
+    "branding (purple/white color scheme)",
+    "account model (single login, buyer/seller mode switching)",
+    "buyer post UX (AI-assisted text-to-listing)",
+    "marketplace UI inspiration (Facebook Marketplace, OfferUp, Afrro)",
+    "reverse-marketplace concept",
+    "seller listing fees / pay-to-list patterns",
+    "AI image attachment for posts"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

@@ -1,0 +1,32 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/DEPLOYMENT.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Production Deployment Guide",
+  "summary": "Step-by-step operational runbook for deploying the Reverse Marketplace API to production VPS with Docker, Nginx SSL, backups, monitoring, CI/CD, and rollback.",
+  "scope": [
+    "VPS provisioning",
+    "Docker Compose",
+    "Nginx SSL/Let's Encrypt",
+    "PostgreSQL backups",
+    "Redis",
+    "BullMQ workers",
+    "Environment variables",
+    "Prometheus metrics",
+    "Sentry monitoring",
+    "GitHub Actions CI/CD",
+    "Rollback procedures",
+    "Scaling plan"
+  ],
+  "cross_refs": [
+    ".env.production.example",
+    "backend/.env.production",
+    "docker-compose.production.yml",
+    ".github/workflows/ci.yml",
+    "backend/scripts/backup.sh"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

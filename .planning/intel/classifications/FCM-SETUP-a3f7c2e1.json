@@ -1,0 +1,13 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/FCM_SETUP.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Firebase Cloud Messaging (FCM) Setup",
+  "summary": "Step-by-step setup guide for configuring Firebase Cloud Messaging across Android, iOS, and the backend, plus optional Sentry DSN configuration.",
+  "scope": ["Firebase Cloud Messaging", "push notifications", "Android app config", "iOS app config", "backend env vars", "Sentry DSN", "Flutter mobile app"],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

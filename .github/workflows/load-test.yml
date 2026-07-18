@@ -1,0 +1,71 @@
+name: Load Test
+# Phase 4 SC#1 -- k6 ramping-VUs full-flow load test.
+# Targets: api p95 < 500ms, search p95 < 500ms, payment p95 < 3000ms, error rate < 1%.
+# T-S-07 mitigation: STAGING_URL must point to staging (never production).
+# Pitfall 4: k6 metrics go to STAGING_PROM_URL (separate from prod Prometheus).
+# Runtime: ~22 min (5 min ramp + 15 min hold + 2 min ramp-down).
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 1'  # Mondays 08:00 UTC
+
+jobs:
+  k6:
+    name: k6 ramping-VUs full-flow (1,000 concurrent, 15-min hold)
+    runs-on: ubuntu-latest
+    outputs:
+      window_start: ${{ steps.window.outputs.start }}
+      window_end: ${{ steps.window.outputs.end }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install tsx
+        run: npm install -g tsx
+
+      - name: Capture window start (ISO 8601)
+        id: window-start
+        run: echo "start=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Seed staging users (loadtest_ prefix -- T-S-06)
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+        run: npx tsx tests/load/seed-users.ts
+
+      - name: Run k6
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: tests/load/scenarios/full-flow.js
+          flags: --out json=docs/load-test-summary.json
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          K6_PROMETHEUS_RW_SERVER_URL: ${{ secrets.STAGING_PROM_URL }}
+
+      - name: Capture window end + emit outputs
+        id: window
+        run: |
+          echo "start=${{ steps.window-start.outputs.start }}" >> "$GITHUB_OUTPUT"
+          echo "end=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload load-test summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-summary
+          path: docs/load-test-summary.json
+
+      - name: Cleanup loadtest_ users on staging (T-S-06 -- always runs)
+        if: always()
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          ADMIN_TOKEN: ${{ secrets.STAGING_ADMIN_TOKEN }}
+        run: |
+          echo "Cleanup loadtest_ seed users..."
+          curl -X DELETE \
+            -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+            "${STAGING_URL}/api/v1/admin/users/cleanup?prefix=loadtest_" \
+            || echo "Cleanup endpoint returned non-200 (manual cleanup may be needed)"

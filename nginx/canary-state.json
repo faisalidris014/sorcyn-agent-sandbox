@@ -1,0 +1,8 @@
+{
+  "stable_host": "vps-a.internal",
+  "canary_host": "vps-b.internal",
+  "stable_weight": 100,
+  "canary_weight": 0,
+  "stage": "stable",
+  "last_promotion": "2026-04-30T00:00:00Z"
+}

@@ -1,0 +1,36 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/docs/decisions.md",
+  "type": "ADR",
+  "confidence": "medium",
+  "manifest_override": false,
+  "title": "Technical Decisions",
+  "summary": "Aggregated log of locked technical and architectural decisions made across 14 build sessions, each with rationale.",
+  "scope": [
+    "Fastify framework",
+    "Prisma 7 driver adapter",
+    "PostgreSQL",
+    "Cloudflare R2 storage",
+    "Google Gemini AI",
+    "Stripe Connect escrow",
+    "JWT auth with refresh rotation",
+    "Redis caching/rate limiting",
+    "BullMQ job queue",
+    "Socket.IO real-time messaging",
+    "Flutter + Riverpod",
+    "GoRouter navigation",
+    "Sentry error tracking",
+    "FCM push notifications",
+    "i18n (10 languages)",
+    "Docker + GitHub Actions CI/CD",
+    "Verification badges",
+    "Fee structure",
+    "Full-text search (PostgreSQL tsvector)",
+    "Deep linking"
+  ],
+  "cross_refs": [
+    "prisma-7-patterns.md"
+  ],
+  "locked": true,
+  "precedence": null,
+  "notes": "Aggregated decision log rather than a single ADR. Each section follows Decision/Rationale pattern characteristic of ADRs and represents accepted/locked choices already implemented in the codebase. Treated as ADR collection with locked=true since all listed decisions are confirmed and shipped. Confidence medium because file is a multi-decision rollup rather than the canonical one-decision-per-file ADR format."
+}

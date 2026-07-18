@@ -1,0 +1,13 @@
+# CODEOWNERS — auto-requests PR review for the two-operator workflow.
+#
+# As of 2026-06-15 the backend/mobile layer split is retired: Faisal & Mohamed
+# both own the full stack (see .planning/WORK_SPLIT.md). So both are owners of
+# everything and each gets review-requested on every PR — the GitHub-native
+# "stay aware of what your partner is doing" layer. Same-file collision-avoidance
+# lives in the realtime claim system (docs/REALTIME_SYNC.md), not here.
+#
+# Last matching pattern wins. Owners: @faisalidris014 (admin),
+# @leenamichoacana (write). Both must remain collaborators with write access.
+
+# Default: both operators own and review everything.
+*                           @faisalidris014 @leenamichoacana

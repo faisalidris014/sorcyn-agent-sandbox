@@ -1,0 +1,13 @@
+flutter_native_splash:
+  # Purple branded splash screen
+  color: "#7C3AED"
+  # Uncomment and provide your logo file:
+  # image: assets/splash_logo.png
+
+  android_12:
+    color: "#7C3AED"
+    # image: assets/splash_logo.png
+
+  ios: true
+  android: true
+  web: false

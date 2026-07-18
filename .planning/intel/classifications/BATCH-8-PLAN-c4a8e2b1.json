@@ -1,0 +1,32 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/BATCH_8_PLAN.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Batch 8: Misc Screens — Execution Plan",
+  "summary": "Execution plan for restyling five remaining Flutter screens (notifications, submit review, verification, Stripe onboard, splash) to match TSX designs.",
+  "scope": [
+    "Flutter mobile app",
+    "notifications_screen.dart",
+    "submit_review_screen.dart",
+    "verification_screen.dart",
+    "stripe_onboard_screen.dart",
+    "splash screen",
+    "UI restyling",
+    "design tokens"
+  ],
+  "cross_refs": [
+    "NotificationsScreen.tsx",
+    "mobile/lib/features/notifications/presentation/screens/notifications_screen.dart",
+    "SubmitReviewScreen.tsx",
+    "mobile/lib/features/reviews/presentation/screens/submit_review_screen.dart",
+    "VerificationScreen.tsx",
+    "mobile/lib/features/sellers/presentation/screens/verification_screen.dart",
+    "StripeOnboardScreen.tsx",
+    "mobile/lib/features/sellers/presentation/screens/stripe_onboard_screen.dart",
+    "SplashScreen.tsx"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

@@ -1,0 +1,91 @@
+name: reverse_marketplace
+description: "Reverse Marketplace - Buyers post needs, sellers compete to fulfill them."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+
+  # HTTP Client
+  dio: ^5.7.0
+
+  # Routing
+  go_router: ^14.8.1
+
+  # Secure Storage
+  flutter_secure_storage: ^9.2.4
+
+  # JSON Serialization
+  json_annotation: ^4.9.0
+
+  # Formatting
+  intl: any
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Logging
+  logger: ^2.5.0
+
+  # URL Launcher
+  url_launcher: ^6.3.1
+
+  # Real-time Messaging
+  socket_io_client: ^3.0.2
+
+  # Push Notifications
+  firebase_core: ^3.12.1
+  firebase_messaging: ^15.2.4
+
+  # Crash Reporting
+  sentry_flutter: ^8.12.0
+  sentry_dio: ^8.12.0
+
+  # Payments
+  flutter_stripe: ^11.3.0
+
+  # File Uploads
+  image_picker: ^1.1.2
+  # Gallery picker with pre-selection (numbered badges on already-added media).
+  # Pinned (no ^) because our custom AssetPickerBuilderDelegate subclass relies
+  # on the package's internal delegate API — see numbered_media_picker.dart.
+  wechat_assets_picker: 9.8.0
+  # Used directly by the custom delegate (Consumer/Selector). Also a transitive
+  # dep of wechat_assets_picker; declared here since we import it ourselves.
+  provider: ^6.1.5
+  flutter_image_compress: ^2.3.0
+  mime: ^2.0.0
+  path: ^1.9.0
+  crypto: ^3.0.3
+
+  # Video Playback
+  video_player: ^2.9.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  # Code Generation
+  build_runner: ^2.4.14
+  json_serializable: ^6.9.4
+
+  # App Store Prep
+  flutter_native_splash: ^2.4.5
+  flutter_launcher_icons: ^0.14.3
+
+flutter:
+  generate: true
+  uses-material-design: true

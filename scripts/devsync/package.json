@@ -1,0 +1,21 @@
+{
+  "name": "sorcyn-devsync",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Realtime work-claim engine so both operators' AI agents know what each other is editing (see docs/REALTIME_SYNC.md).",
+  "bin": {
+    "devsync": "./claim.mjs"
+  },
+  "scripts": {
+    "init": "node claim.mjs init",
+    "board": "node claim.mjs list",
+    "whoami": "node claim.mjs whoami"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

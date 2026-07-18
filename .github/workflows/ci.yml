@@ -1,0 +1,255 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same PR branch when a new commit is pushed, so a
+# stale run can't sit pending alongside the current one. Never cancel push/main
+# runs (cancel-in-progress=false there) — that could interrupt a production deploy.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/api
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run typecheck
+
+  no-stripe-branding:
+    name: No Stripe brand in user-facing strings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # RUNBOOK_OPS.md §2 / issue #84: the payment processor must never be named
+      # "Stripe" in user-facing copy (only the two required attribution footnotes).
+      - run: ./scripts/check-no-stripe-branding.sh
+
+  no-old-brand-email:
+    name: No "Reverse Marketplace" in transactional email copy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Issue #217: the old codename must never appear in sent email copy; the
+      # brand is "Sorcyn" (i18n locale values + auth email helpers).
+      - run: ./scripts/check-no-old-brand-email.sh
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: reverse_marketplace_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/reverse_marketplace_test
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: test-access-secret-must-be-at-least-32-characters-long
+      JWT_REFRESH_SECRET: test-refresh-secret-must-be-at-least-32-characters-long
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma db push
+      - run: npx prisma db seed
+      - name: Audit gate (Phase 3 + Phase 4 closeout assertions)
+        run: npm run test:audit
+      - run: npm run test:coverage
+
+  migration-drift:
+    name: Migration Drift (deploy == schema)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: drift_check
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/drift_check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      # Reproduce the production deploy path (deploy.script runs `migrate deploy`):
+      # apply the committed migrations to a fresh empty DB...
+      - run: npx prisma migrate deploy
+      # ...then assert that result reproduces schema.prisma exactly. A non-empty
+      # diff (exit 2) fails the job, so migration<->schema drift can never silently
+      # reach a production deploy again. See issue #153.
+      - name: Assert migrate deploy reproduces schema.prisma (zero drift)
+        run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+
+  contract-drift:
+    name: Contract Drift (openapi == routes)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    # No DB/Redis services needed — buildApp() registers routes + the Zod->OpenAPI
+    # transform without opening any connection (Socket.IO/Redis live in server.ts).
+    # The env vars below only satisfy env.ts Zod validation; nothing connects.
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/unused
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: test-access-secret-must-be-at-least-32-characters-long
+      JWT_REFRESH_SECRET: test-refresh-secret-must-be-at-least-32-characters-long
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      # Assert the committed contracts/openapi.json matches the live routes. A
+      # mismatch means an API change shipped without regenerating the contract —
+      # fix with `npm run contract:generate` and commit contracts/openapi.json.
+      # This is the seam guard between Faisal's backend and Mohamed's Flutter app.
+      - run: npm run contract:check
+
+  mobile-analyze-and-test:
+    name: Mobile Analyze & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.7'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, test, migration-drift, contract-drift]
+    # Gated until production infrastructure is wired up. Flip the repo
+    # variable PROD_DEPLOY_READY=true (Settings -> Variables) to enable
+    # Docker push + deploy. Lint+test still run on every push to main.
+    if: ${{ github.ref == 'refs/heads/main' && vars.PROD_DEPLOY_READY == 'true' }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/reverse-marketplace
+            docker compose -f docker-compose.production.yml pull api
+            docker compose -f docker-compose.production.yml run --rm api npx prisma migrate deploy
+            docker compose -f docker-compose.production.yml up -d --no-deps api
+            docker image prune -f
+
+      - name: Verify deployment health
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          for i in $(seq 1 10); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${DEPLOY_HOST}/health" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Health check passed (attempt $i)"
+              exit 0
+            fi
+            echo "Health check returned $STATUS (attempt $i/10), retrying in 10s..."
+            sleep 10
+          done
+          echo "Deployment health check failed after 10 attempts"
+          exit 1

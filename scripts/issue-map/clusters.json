@@ -1,0 +1,162 @@
+{
+  "title": "V1.1 Issue Ticket Relationship Map",
+  "intro": "For each v1.1 ticket: its same-screen/module siblings, hard dependencies (`-> #N`), and the PRD section behind it. v1.1 = everything except [v2.0-*]/[v3.0-*] titles and phase-6/phase-7 labels. Clusters and PRD anchors are curated in scripts/issue-map/clusters.json; ticket state + cross-refs are pulled live from GitHub.",
+  "clusters": [
+    {
+      "id": "submit-offer",
+      "name": "Submit Offer screen (seller)",
+      "prd": ["§8.3 Seller Journey (L3600)", "§11.3 Offers Endpoints (L9779)", "§8.4 Messaging (L5518)"],
+      "pins": [304, 302, 306, 303, 305, 296],
+      "match": {
+        "labels": ["area/offers"],
+        "keywords": ["submit offer", "offer form", "estimatedhours", "counter-offer", "offer message"],
+        "refsAny": [297, 300, 304]
+      },
+      "note": "All trace to closed roots #297/#300 (seller on wrong screen + wrong route). Build #304/#302/#306 together (one form). #303/#305 are the messaging sub-thread."
+    },
+    {
+      "id": "seller-feed",
+      "name": "Seller \"Find Work\" feed + categories",
+      "prd": ["§8.3 Seller Journey (L3600)", "§8.8 Search & Discovery (L7636)"],
+      "pins": [301, 321, 4, 298, 318],
+      "match": {
+        "labels": [],
+        "keywords": ["find work", "seller feed", "profile categories", "subcategory", "milestone counter", "category selection"],
+        "refsAny": [290]
+      },
+      "note": "#301 scopes the feed to seller categories; #321 requires a subcategory on posts (pairs with #301). #318 milestone-counter bug ties to #77."
+    },
+    {
+      "id": "discover-feed",
+      "name": "Discover / For-You feed (buyer)",
+      "prd": ["§3 For-You Page / Discovery Feed (L198)", "§8.8 Search & Discovery (L7636)"],
+      "pins": [322, 323, 324, 321],
+      "match": {
+        "labels": [],
+        "keywords": ["discover", "for you", "for-you", "trending", "nearby feed"],
+        "refsAny": [315]
+      },
+      "note": "Root #315 (closed). #321 (subcategory) is shared with the seller-feed cluster."
+    },
+    {
+      "id": "image-handling",
+      "name": "Image handling epic (#310)",
+      "prd": ["§12.6 File Upload Security (L10817)", "§13.4 File Storage & CDN / R2 (L11147)"],
+      "pins": [310, 311, 312, 313, 314],
+      "match": {
+        "labels": ["area/uploads"],
+        "keywords": ["photo upload", "image handling", "category-card", "takedown", "perceptual-hash", "tos acceptance"],
+        "refsAny": [310]
+      },
+      "note": "#312 is the join point with Submit Offer (#304) and Discover (#322). #187 (R2 provisioning) is a hard blocker for #312 & #313."
+    },
+    {
+      "id": "business-verification",
+      "name": "Business accounts + verification (v2.2 spec)",
+      "prd": ["§8.1 User Management (L808)", "§10.4 v2.2 Schema Additions (L9246)", "§15.5 v2.2 User Stories (L11729)", "§11.10 Seller Profile (L10445)"],
+      "pins": [235, 236, 237, 230, 158, 245, 231, 215],
+      "match": {
+        "labels": ["area/verification"],
+        "keywords": ["business account", "sales-tax", "sales tax", "limited-access", "unverified business", "ein"],
+        "refsAny": [211, 210, 228, 229, 232, 234]
+      },
+      "note": "Spikes define scope first: #235 -> #236 (backend gating) + #237 (mobile UI). Don't build #236/#237 before the #235 decision lands. Closed parent #211 -> {#225,#227,#229,#234,#242}."
+    },
+    {
+      "id": "stripe-payments",
+      "name": "Stripe / payments / onboarding",
+      "prd": ["§8.5 Payment System (L5947)", "§11.5 Payment Endpoints (L10091)", "§13.1 Payment Processing (L10946)"],
+      "pins": [98, 74, 154, 91, 149, 77, 75],
+      "match": {
+        "labels": ["area/stripe", "area/payments"],
+        "keywords": ["stripe", "escrow", "payout", "seller onboarding", "connect onboarding", "milestone", "offer cap"],
+        "refsAny": [84, 107, 97]
+      },
+      "note": "#84 (closed) stripe-degrade + payment-intent queue is the shared root. #154/#91/#149 are degrade follow-ups to #107. #77 milestone payment ties to #318."
+    },
+    {
+      "id": "tax-launch",
+      "name": "Launch / tax & compliance strategy",
+      "prd": ["docs/tax-reporting-1099k.md", "§14.2 Compliance Summary (L11375)"],
+      "pins": [286, 122, 314],
+      "match": {
+        "labels": [],
+        "keywords": ["1099", "marketplace-facilitator", "marketplace facilitator", "launch strategy", "tax reporting"],
+        "refsAny": []
+      },
+      "note": "#286 is the policy decision; #122 implements per-state 1099-K. Spec lives in standalone docs/tax-reporting-1099k.md (tax rules change yearly), not the PRD."
+    },
+    {
+      "id": "phase4-hardening",
+      "name": "Phase-4 pre-launch hardening epic (#9)",
+      "prd": ["§12 Security Checklist (L10571)", "§14 Security & Compliance (L11331)", "§16 Non-Functional (L11791)"],
+      "pins": [9, 135, 269, 309, 26, 28, 31, 32, 33, 34, 35, 36, 102, 103],
+      "match": {
+        "labels": ["phase-4", "security"],
+        "keywords": ["security review", "hardening", "saq-a", "load test", "accessibility", "chaos", "audit suite"],
+        "refsAny": [9, 135]
+      },
+      "note": "#135 manual security review -> SEC tickets #255-#269 (mostly closed). #309 AI chat integrity + deploy controls."
+    },
+    {
+      "id": "phase5-launch",
+      "name": "Phase-5 soft-launch epic (#10) + ops provisioning (#40)",
+      "prd": ["§12.8 Monitoring & Incident Response (L10882)", "§16.3 Reliability (L11842)", "§13.2 Communication (L10988)"],
+      "pins": [10, 40, 38, 39, 41, 86, 87, 93],
+      "match": {
+        "labels": ["phase-5", "area/observability"],
+        "keywords": ["on-call", "status page", "soft-launch", "soft launch", "cold-start", "metrics dashboard", "ops runbook"],
+        "refsAny": [10, 40]
+      },
+      "note": "#40 ops runbook/on-call -> the vendor-provisioning chain (#85-#94). Open in chain: #86 status.sorcyn.com, #87 vendor audit, #93 Better Stack on-call."
+    },
+    {
+      "id": "email-rebrand",
+      "name": "Email templates / Sorcyn rebrand",
+      "prd": ["§13.2 Communication Services (L10988)"],
+      "pins": [219, 80, 69],
+      "match": {
+        "labels": [],
+        "keywords": ["email template", "transactional email", "rebrand", "sorcyn"],
+        "refsAny": [80, 88, 217]
+      },
+      "note": "#219 branded HTML email templates; #80 rebrand runtime surfaces; #69 docs brand update."
+    },
+    {
+      "id": "db-migrations",
+      "name": "DB / migrations / dev-infra (v1.1 tech debt)",
+      "prd": ["§10 Database Schema (L8586)", "§9 Technical Architecture (L8167)"],
+      "pins": [215, 205, 155, 194, 251],
+      "match": {
+        "labels": ["area/database"],
+        "keywords": ["migration", "schema drift", "db:doctor", "backup", "actions secret"],
+        "refsAny": [133, 152, 159]
+      },
+      "note": "#215 v2.2 business-columns migration; #205 schema-DB drift detection; #194 backup secrets; #251 admin announcements + hide console."
+    },
+    {
+      "id": "devinfra-backlog",
+      "name": "Dev-infra & docs backlog (tech debt)",
+      "prd": ["§9 Technical Architecture (L8167)"],
+      "pins": [11, 70, 71, 72, 73, 76, 137, 138, 252],
+      "match": {
+        "labels": [],
+        "keywords": ["worktree", "decision log", "onboarding guide", "rbac", "flutter clean", "operator sync", "prune merged branches", "backlog"],
+        "refsAny": []
+      },
+      "note": "Non-screen tech-debt + docs chores (BL-* backlog, DX tooling). Low priority; pick up between feature work."
+    },
+    {
+      "id": "ai-post-creation",
+      "name": "AI post-creation chatbot",
+      "prd": ["§8.2 Buyer Journey AI-assist (L1620)", "§13.6 AI/ML Services (L11287)"],
+      "pins": [6],
+      "match": {
+        "labels": ["area/ai"],
+        "keywords": ["ai-assist", "ai assist", "chatbot", "gemini"],
+        "refsAny": [6]
+      },
+      "note": "#6 redesign AI post creation as chatbot UX — referenced by #74 and #309."
+    }
+  ]
+}

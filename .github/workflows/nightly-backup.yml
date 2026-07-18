@@ -1,0 +1,42 @@
+name: Nightly Backup
+on:
+  schedule:
+    - cron: '0 3 * * *'  # daily at 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  pg-dump-and-sync:
+    name: pg_dump → R2 + cross-region sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run pg-dump-to-r2 on prod VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/reverse-marketplace
+            export DATABASE_URL="${{ secrets.DATABASE_URL }}"
+            export R2_DUMP_BUCKET="${{ secrets.R2_DUMP_BUCKET }}"
+            export R2_ENDPOINT="${{ secrets.R2_ENDPOINT }}"
+            export R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}"
+            export R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}"
+            ./backend/scripts/pg-dump-to-r2.sh
+
+      - name: Run cross-region sync on prod VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/reverse-marketplace
+            export R2_DUMP_BUCKET="${{ secrets.R2_DUMP_BUCKET }}"
+            export R2_DUMP_BUCKET_DR="${{ secrets.R2_DUMP_BUCKET_DR }}"
+            export R2_IMAGES_BUCKET="${{ secrets.R2_IMAGES_BUCKET }}"
+            export R2_IMAGES_BUCKET_DR="${{ secrets.R2_IMAGES_BUCKET_DR }}"
+            export R2_ENDPOINT="${{ secrets.R2_ENDPOINT }}"
+            export R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}"
+            export R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}"
+            ./backend/scripts/r2-cross-region-sync.sh

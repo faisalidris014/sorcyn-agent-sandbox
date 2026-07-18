@@ -1,0 +1,23 @@
+name: Rollback Canary
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rollback:
+    name: Rollback to stable
+    runs-on: ubuntu-latest
+    # NO required reviewer per RESEARCH Pitfall 8 — rollback must be one-click.
+    # Access controlled via branch protection on main (only Faisal can dispatch).
+    environment: production-rollback
+    steps:
+      - name: Flip Nginx weights back to stable
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.LB_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/sorcyn-lb
+            ./set-weights.sh rollback
+            echo "[$(date -Iseconds)] Rollback complete: VPS-A weight=100, VPS-B weight=0"

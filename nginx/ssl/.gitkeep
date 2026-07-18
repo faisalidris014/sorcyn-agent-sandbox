@@ -1,0 +1,13 @@
+# Place SSL certificates here:
+#   fullchain.pem  — Full certificate chain (cert + intermediate)
+#   privkey.pem    — Private key
+#
+# For Let's Encrypt, use certbot:
+#   certbot certonly --webroot -w /var/www/certbot -d api.yourdomain.com
+#
+# Then copy or symlink:
+#   cp /etc/letsencrypt/live/api.yourdomain.com/fullchain.pem ./
+#   cp /etc/letsencrypt/live/api.yourdomain.com/privkey.pem ./
+#
+# For auto-renewal, add a cron job:
+#   0 0 1 * * certbot renew --quiet && docker exec rm-nginx nginx -s reload

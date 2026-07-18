@@ -1,0 +1,27 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/BATCH_4_PLAN.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Batch 4: Messages — Execution Plan",
+  "summary": "Execution plan to restyle the Flutter messaging screens (conversations list and chat) to match TSX design references in Batch 4.",
+  "scope": [
+    "Flutter mobile app",
+    "messaging feature",
+    "conversations_screen.dart",
+    "chat_screen.dart",
+    "MessagesScreen design",
+    "ChatScreen design",
+    "UI restyle",
+    "design tokens"
+  ],
+  "cross_refs": [
+    "MessagesScreen.tsx",
+    "ChatScreen.tsx",
+    "mobile/lib/features/messages/presentation/screens/conversations_screen.dart",
+    "mobile/lib/features/messages/presentation/screens/chat_screen.dart"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}

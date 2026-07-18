@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+# Derived per-machine by scripts/bootstrap-db.sh from .env (db name → _test).
+# Commit .env.test.example, never .env.test.
+.env.test
+*.log
+coverage/
+.prisma/

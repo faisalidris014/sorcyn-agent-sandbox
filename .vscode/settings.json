@@ -1,0 +1,10 @@
+{
+  // ── Shared team setting: keep every operator's clone aware of each other ──
+  // Auto-fetch ALL remotes/branches in the background so origin/main and every
+  // teammate branch stay current WITHOUT anyone running `git fetch`.
+  // This only updates remote-tracking refs — it never changes your working
+  // files. To actually pull main's changes into your branch, run `sorcyn dev`
+  // (which auto-merges origin/main first) or `sorcyn sync`.
+  "git.autofetch": "all",
+  "git.autofetchPeriod": 60
+}

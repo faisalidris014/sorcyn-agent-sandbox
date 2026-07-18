@@ -1,0 +1,34 @@
+{
+  "source_path": "/Users/faisalidris/ReverseMarketplace/BATCH_5_PLAN.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": false,
+  "title": "Batch 5: Transactions — Execution Plan",
+  "summary": "Implementation playbook for restyling four Flutter transaction/payment screens to match TSX designs, with per-screen restyle steps and design tokens.",
+  "scope": [
+    "Flutter mobile app",
+    "transactions_screen.dart",
+    "transaction_detail_screen.dart",
+    "seller_transaction_detail_screen.dart",
+    "dispute_detail_screen.dart",
+    "UI restyle",
+    "design tokens",
+    "milestone timeline",
+    "escrow indicator",
+    "before/after photos",
+    "dispute flow"
+  ],
+  "cross_refs": [
+    "TransactionsScreen.tsx",
+    "TransactionDetailScreen.tsx",
+    "SellerTransactionDetailScreen.tsx",
+    "DisputeDetailScreen.tsx",
+    "mobile/lib/features/transactions/presentation/screens/transactions_screen.dart",
+    "mobile/lib/features/transactions/presentation/screens/transaction_detail_screen.dart",
+    "mobile/lib/features/transactions/presentation/screens/seller_transaction_detail_screen.dart",
+    "mobile/lib/features/transactions/presentation/screens/dispute_detail_screen.dart"
+  ],
+  "locked": false,
+  "precedence": null,
+  "notes": ""
+}
