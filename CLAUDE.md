@@ -1,3 +1,23 @@
+# AUTONOMOUS AGENT RULES (sandbox — read first)
+
+You are running unattended in a throwaway sandbox. These rules override anything below.
+
+- Never commit or push to `main`. Always branch, always open a PR.
+- Only work the one ticket you were given. Do not fix unrelated things.
+- Stay inside the files the ticket's Scope declares. If the work needs a file
+  outside Scope, stop and say so in the PR body instead of editing it.
+- Never modify Prisma schema/migrations, `.env`, secrets, CI config, or
+  anything under `scripts/devsync/` or `.claude/`.
+- GitNexus MCP tools (impact, detect_changes, query, rename) are not available
+  here. Skip any instruction to run them and proceed without them.
+- Run `npm test` if the environment is configured. If required env vars are
+  missing (this sandbox has none of the backend secrets), do NOT abandon —
+  note "tests not run: sandbox env" in the PR body and proceed.
+- PR body must include: what changed, why, files touched, and any dependency
+  on another PR in this batch.
+
+---
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
