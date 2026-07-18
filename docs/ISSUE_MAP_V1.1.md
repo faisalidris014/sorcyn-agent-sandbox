@@ -6,101 +6,200 @@
 
 For each v1.1 ticket: its same-screen/module siblings, hard dependencies (`-> #N`), and the PRD section behind it. v1.1 = everything except [v2.0-*]/[v3.0-*] titles and phase-6/phase-7 labels. Clusters and PRD anchors are curated in scripts/issue-map/clusters.json; ticket state + cross-refs are pulled live from GitHub.
 
-_Generated from `gh issue list` + scripts/issue-map/clusters.json — 0 v1.1 issues. Run `node scripts/gen-issue-map.mjs` to refresh._
+_Generated from `gh issue list` + scripts/issue-map/clusters.json — 216 v1.1 issues. Run `node scripts/gen-issue-map.mjs` to refresh._
 
 Legend: `(C)` = closed sibling worth reading · `refs #N` = referenced/dependency ticket.
 
 ## Submit Offer screen (seller)
 **PRD:** §8.3 Seller Journey (L3600) · §11.3 Offers Endpoints (L9779) · §8.4 Messaging (L5518)
 
-_(no open v1.1 tickets)_
+- **#304** (C) feat(offers): Submit Offer form — Per Item/Custom inputs + structured Can Start / Timeline fields — refs #297, #300
+- **#302** (C) fix(offers): offer message should be optional (50-char minimum silently blocked offer creation) — refs #297, #300
+- **#306** (C) bug(offers): Submit Offer 400s — null numeric fields (estimatedHours) rejected by .optional() schema — refs #297, #299, #300, #301, #302
+- **#303** (C) bug(mobile): Message button on seller post detail is a no-op stub — refs #297, #300
+- **#305** (C) decision: should submitting an offer start a buyer↔seller conversation? — refs #297, #300
+- **#296** (C) bug(backend): offers endpoint seller object missing userId (mobile SellerSummary parse crash risk) — refs #289, #294
+- **#158** discuss(seller): define seller-side screens shown per marketplace mode (B2C / B2B / C2C toggle) — refs #78
+- **#75** [BL-TECH-04] Per-buyer offer cap (currently only per-post)
 
 > All trace to closed roots #297/#300 (seller on wrong screen + wrong route). Build #304/#302/#306 together (one form). #303/#305 are the messaging sub-thread.
 
 ## Seller "Find Work" feed + categories
 **PRD:** §8.3 Seller Journey (L3600) · §8.8 Search & Discovery (L7636)
 
-_(no open v1.1 tickets)_
+- **#301** (C) feat(feed): scope seller "Find Work" feed to the seller's profile categories (+ store subcategory granularity) — refs #1, #2
+- **#321** (C) Require a subcategory on posts, not just a top-level category — refs #315
+- **#4** (C) Seller profile setup: category selection logic differs by category type
+- **#298** (C) bug(mobile): seller profile edit pencil routes to nonexistent /seller/profile/edit (Page Not Found)
+- **#318** (C) Seller My Jobs card: milestone counter exceeds total (e.g. "9 / 6 milestones") — refs #290
+- **#363** chore(db): backfill null-subcategory posts + SET NOT NULL on posts.subcategory_id (follow-up to #321) — refs #321, #361
 
 > #301 scopes the feed to seller categories; #321 requires a subcategory on posts (pairs with #301). #318 milestone-counter bug ties to #77.
 
 ## Discover / For-You feed (buyer)
 **PRD:** §3 For-You Page / Discovery Feed (L198) · §8.8 Search & Discovery (L7636)
 
-_(no open v1.1 tickets)_
+- **#322** Discover seller-offer screen: show seller profile photo + verification badges for buyer trust — refs #315
+- **#323** Discover feed modes: For You / Trending / Nearby / Shipping — refs #315
+- **#324** Discover grid UI design refresh (visual only) — refs #315
+- **#321** (C) Require a subcategory on posts, not just a top-level category — refs #315
 
 > Root #315 (closed). #321 (subcategory) is shared with the seller-feed cluster.
 
 ## Image handling epic (#310)
 **PRD:** §12.6 File Upload Security (L10817) · §13.4 File Storage & CDN / R2 (L11147)
 
-_(no open v1.1 tickets)_
+- **#310** (C) Image handling for posts & offers (epic): category-card fallback, uploads, copyright takedown/staydown, repeat-infringer, ToS — refs #187
+- **#311** (C) Category card fallback (composed widget + category color/icon map) — refs #310
+- **#312** (C) Reference & offer photo uploads (posts + offers) — refs #187, #310
+- **#313** (C) Copyright takedown + perceptual-hash staydown + repeat-infringer enforcement — refs #310
+- **#314** (C) Record Terms of Service acceptance at signup — refs #310
 
 > #312 is the join point with Submit Offer (#304) and Discover (#322). #187 (R2 provisioning) is a hard blocker for #312 & #313.
 
 ## Business accounts + verification (v2.2 spec)
 **PRD:** §8.1 User Management (L808) · §10.4 v2.2 Schema Additions (L9246) · §15.5 v2.2 User Stories (L11729) · §11.10 Seller Profile (L10445)
 
-_(no open v1.1 tickets)_
+- **#235** discuss: define the limited-access tier for unverified business accounts (what's viewable vs locked) — refs #230, #232
+- **#236** feat(backend/verification): enforce limited-access gating for unverified business accounts — refs #227, #228
+- **#237** feat(mobile/verification): surface unverified-business limited state (banner + gated actions + upload CTA) — refs #228, #229, #232, #234
+- **#230** discuss(mobile): define the business-account screen set vs classic buyer/seller views — refs #158
+- **#158** discuss(seller): define seller-side screens shown per marketplace mode (B2C / B2B / C2C toggle) — refs #78
+- **#245** (C) bug(mobile/profile): Verification row shows 'Verified' badge based on emailVerified, not seller identity verification
+- **#231** feat(backend/verification): automated sales-tax certificate legitimacy validation (deferred — Phase 2)
+- **#215** fix(backend): create tracked migration for v2.2 business-account columns (is_business, business_name, etc.) — refs #210, #211
+- **#382** License/insurance expiration + re-verification (lapse) — refs #369
+- **#360** polish(admin-web): file-icon preview for non-image (PDF) docs in verification & category queues — refs #339, #356
+- **#334** [Epic] Seller category access: feed scoping + verification router — refs #4, #298, #301, #321, #326, #336, #337, #338, #339, #346, #350, #352, #353
+- **#286** Launch strategy: DFW local-first + national shipping/remote — sales-tax & marketplace-facilitator decisions
 
 > Spikes define scope first: #235 -> #236 (backend gating) + #237 (mobile UI). Don't build #236/#237 before the #235 decision lands. Closed parent #211 -> {#225,#227,#229,#234,#242}.
 
 ## Stripe / payments / onboarding
 **PRD:** §8.5 Payment System (L5947) · §11.5 Payment Endpoints (L10091) · §13.1 Payment Processing (L10946)
 
-_(no open v1.1 tickets)_
+- **#98** Review Stripe Connect integration — move seller onboarding fully in-app (no redirect to Stripe) — refs #97
+- **#74** [BL-TECH-03] Stripe AccountSession (embedded onboarding) as a future option — refs #6
+- **#154** feat(payments): block high-value offer acceptance while STRIPE_DEGRADED (avoid accepted-but-unpaid during outage) — follow-up to #107 — refs #84, #91, #107
+- **#91** [v1.1-post-launch] Re-evaluate Stripe outage high-value threshold ( placeholder) — refs #40
+- **#149** docs(ops): author payment-processor degrade runbook (RUNBOOK_OPS §2) referenced by #107 — refs #84, #107
+- **#77** Milestone progress tracking with client approval and escrow-based payment release
+- **#75** [BL-TECH-04] Per-buyer offer cap (currently only per-post)
+- **#286** Launch strategy: DFW local-first + national shipping/remote — sales-tax & marketplace-facilitator decisions
+- **#103** 04-07 Task 5 — Stripe SAQ-A applicability determination
+- **#40** [v1.1-E3-04] Post-launch ops runbook + on-call rotation — refs #84, #85, #86, #87, #88, #89, #90, #92, #93, #94
 
 > #84 (closed) stripe-degrade + payment-intent queue is the shared root. #154/#91/#149 are degrade follow-ups to #107. #77 milestone payment ties to #318.
 
 ## Launch / tax & compliance strategy
 **PRD:** docs/tax-reporting-1099k.md · §14.2 Compliance Summary (L11375)
 
-_(no open v1.1 tickets)_
+- **#286** Launch strategy: DFW local-first + national shipping/remote — sales-tax & marketplace-facilitator decisions
+- **#122** feat(payments): implement per-state 1099-K reporting threshold logic
+- **#314** (C) Record Terms of Service acceptance at signup — refs #310
 
 > #286 is the policy decision; #122 implements per-state 1099-K. Spec lives in standalone docs/tax-reporting-1099k.md (tax rules change yearly), not the PRD.
 
 ## Phase-4 pre-launch hardening epic (#9)
 **PRD:** §12 Security Checklist (L10571) · §14 Security & Compliance (L11331) · §16 Non-Functional (L11791)
 
-_(no open v1.1 tickets)_
+- **#9** [v1.1-EPIC-2] Phase 4 — Pre-Launch Hardening — refs #26, #27, #28, #29, #30, #31, #32, #33, #34, #35, #36, #135
+- **#135** (C) [v1.1-E2-12] Manual security review (threat model + code-level) — refs #9, #17, #32, #255, #256, #257, #258, #259, #260, #261, #262, #263, #264, #265, #266, #267, #268, #269
+- **#269** [SEC-HARDENING] LOW/INFO security hardening pass (L1–L7, INFO-1–3) — refs #135, #260
+- **#309** Security hardening: AI chat integrity + deploy-pipeline controls — refs #6, #135
+- **#26** [v1.1-E2-01] ADR + CI gate: forward-compatible-only Prisma migrations
+- **#28** [v1.1-E2-03] Observability foundation (Sentry Performance + Better Stack + Slack)
+- **#31** [v1.1-E2-06] Synthetic incident drill + chaos endpoint (live drill PENDING) — refs #4
+- **#32** [v1.1-E2-07] Load test (k6) + Snyk + OWASP ZAP + coverage (B-1 PENDING)
+- **#33** [v1.1-E2-08] PCI-DSS SAQ-A applicability + filing (HUMAN ACTION)
+- **#34** [v1.1-E2-09] Accessibility audit (WCAG 2.1 AA) across all customer-facing screens
+- **#35** [v1.1-E2-10] 20-user UAT + sign-off
+- **#36** [v1.1-E2-11] Audit suite SC1–SC5 final closure
+- **#102** 04-06 Task 3 — live observability/failover drill on staging
+- **#103** 04-07 Task 5 — Stripe SAQ-A applicability determination
+- **#348** [v1.1-E2-12b] Final pre-launch security re-review (run AFTER v1.1 code freeze) — refs #6, #9, #10, #135, #255, #256, #259, #260, #269, #301, #303, #305, #309, #334, #346, #347
+- **#251** [v1.1] admin-web: add announcement controls screen + make the console undiscoverable to customers — refs #85, #161, #187
 
 > #135 manual security review -> SEC tickets #255-#269 (mostly closed). #309 AI chat integrity + deploy controls.
 
 ## Phase-5 soft-launch epic (#10) + ops provisioning (#40)
 **PRD:** §12.8 Monitoring & Incident Response (L10882) · §16.3 Reliability (L11842) · §13.2 Communication (L10988)
 
-_(no open v1.1 tickets)_
+- **#10** [v1.1-EPIC-3] Phase 5 — DFW Soft-Launch + Cold-Start Seed — refs #37, #38, #39, #40, #41
+- **#40** [v1.1-E3-04] Post-launch ops runbook + on-call rotation — refs #84, #85, #86, #87, #88, #89, #90, #92, #93, #94
+- **#38** [v1.1-E3-02] Year 1 metrics dashboard (Grafana or Datadog)
+- **#39** [v1.1-E3-03] Marketing launch (TikTok + Instagram + app stores)
+- **#41** [v1.1-E3-05] First 10 real transactions logged within 30 days post-launch
+- **#86** [v1.1-E3-04c] status.sorcyn.com setup (BetterStatus free tier) — refs #40
+- **#87** [v1.1-E3-04d] Vendor stack audit follow-through — refs #40
+- **#93** [v1.1] Better Stack on-call + status page provisioning (replaces Opsgenie + BetterStatus plan) — refs #40, #86, #90
+- **#348** [v1.1-E2-12b] Final pre-launch security re-review (run AFTER v1.1 code freeze) — refs #6, #9, #10, #135, #255, #256, #259, #260, #269, #301, #303, #305, #309, #334, #346, #347
+- **#187** infra(storage): provision Cloudflare R2 for production — app buckets + backup buckets + Doppler/Actions secrets — refs #40, #87, #163, #164, #186
+- **#154** feat(payments): block high-value offer acceptance while STRIPE_DEGRADED (avoid accepted-but-unpaid during outage) — follow-up to #107 — refs #84, #91, #107
+- **#149** docs(ops): author payment-processor degrade runbook (RUNBOOK_OPS §2) referenced by #107 — refs #84, #107
+- **#91** [v1.1-post-launch] Re-evaluate Stripe outage high-value threshold ( placeholder) — refs #40
+- **#31** [v1.1-E2-06] Synthetic incident drill + chaos endpoint (live drill PENDING) — refs #4
+- **#28** [v1.1-E2-03] Observability foundation (Sentry Performance + Better Stack + Slack)
+- **#9** [v1.1-EPIC-2] Phase 4 — Pre-Launch Hardening — refs #26, #27, #28, #29, #30, #31, #32, #33, #34, #35, #36, #135
 
 > #40 ops runbook/on-call -> the vendor-provisioning chain (#85-#94). Open in chain: #86 status.sorcyn.com, #87 vendor audit, #93 Better Stack on-call.
 
 ## Email templates / Sorcyn rebrand
 **PRD:** §13.2 Communication Services (L10988)
 
-_(no open v1.1 tickets)_
+- **#219** feat(email): branded HTML template system for transactional emails — refs #80, #88, #217
+- **#80** Sorcyn rebrand: rename runtime/deployment surfaces (iOS bundle, package.json, DB, URL scheme, repo) — refs #79
+- **#69** [BL-DOCS-01] Update CLAUDE.md / PRD: brand name is Sorcyn
+- **#86** [v1.1-E3-04c] status.sorcyn.com setup (BetterStatus free tier) — refs #40
+- **#40** [v1.1-E3-04] Post-launch ops runbook + on-call rotation — refs #84, #85, #86, #87, #88, #89, #90, #92, #93, #94
 
 > #219 branded HTML email templates; #80 rebrand runtime surfaces; #69 docs brand update.
 
 ## DB / migrations / dev-infra (v1.1 tech debt)
 **PRD:** §10 Database Schema (L8586) · §9 Technical Architecture (L8167)
 
-_(no open v1.1 tickets)_
+- **#215** fix(backend): create tracked migration for v2.2 business-account columns (is_business, business_name, etc.) — refs #210, #211
+- **#205** chore(db): add schema↔DB drift detection to db:doctor (sibling to #159 schema↔client check) — refs #26, #133, #152, #159
+- **#155** chore(onboarding): reconcile PR #83 with merged DB tooling — resolve semantic conflicts + rewrite parity test — refs #82, #83, #133, #134
+- **#194** infra(backups): set DEPLOY_HOST/USER/SSH_KEY + DATABASE_URL Actions secrets so nightly-backup.yml can run — refs #187
+- **#251** [v1.1] admin-web: add announcement controls screen + make the console undiscoverable to customers — refs #85, #161, #187
+- **#363** chore(db): backfill null-subcategory posts + SET NOT NULL on posts.subcategory_id (follow-up to #321) — refs #321, #361
+- **#358** perf(admin): harden transactions list for scale — index created_at + composites, defuse COUNT(*)
+- **#326** feat(seller): sellers can create their own listings/offerings — the "+" is hidden in seller mode — refs #147, #158, #230, #301
+- **#187** infra(storage): provision Cloudflare R2 for production — app buckets + backup buckets + Doppler/Actions secrets — refs #40, #87, #163, #164, #186
+- **#26** [v1.1-E2-01] ADR + CI gate: forward-compatible-only Prisma migrations
 
 > #215 v2.2 business-columns migration; #205 schema-DB drift detection; #194 backup secrets; #251 admin announcements + hide console.
 
 ## Dev-infra & docs backlog (tech debt)
 **PRD:** §9 Technical Architecture (L8167)
 
-_(no open v1.1 tickets)_
+- **#11** [v1.1-EPIC-4] Bug-fix / UX gap bucket (Phase 999.2 promoted) — refs #5, #42, #43, #44, #45, #46, #47
+- **#70** [BL-DOCS-02] Onboarding guide for new contributors
+- **#71** [BL-DOCS-03] Decision log cross-link from CLAUDE.md
+- **#72** [BL-TECH-01] Orphan worktree cleanup
+- **#73** [BL-TECH-02] Confirm audit script location before Phase 3 re-run
+- **#76** [BL-TECH-05] Custom RBAC (beyond isAdmin boolean)
+- **#137** chore(mobile/dx): auto-run flutter clean after git pull/rebase via git hooks — refs #132
+- **#138** feat(devx): real-time operator sync (Tier 2 — WIP branch streaming) — refs #244, #246
+- **#252** chore: prune merged branches + review stale unmerged ones — refs #250
 
 > Non-screen tech-debt + docs chores (BL-* backlog, DX tooling). Low priority; pick up between feature work.
 
 ## AI post-creation chatbot
 **PRD:** §8.2 Buyer Journey AI-assist (L1620) · §13.6 AI/ML Services (L11287)
 
-_(no open v1.1 tickets)_
+- **#6** AI-assisted post creation: redesign as chatbot conversation UX
+- **#348** [v1.1-E2-12b] Final pre-launch security re-review (run AFTER v1.1 code freeze) — refs #6, #9, #10, #135, #255, #256, #259, #260, #269, #301, #303, #305, #309, #334, #346, #347
+- **#309** Security hardening: AI chat integrity + deploy-pipeline controls — refs #6, #135
+- **#74** [BL-TECH-03] Stripe AccountSession (embedded onboarding) as a future option — refs #6
 
 > #6 redesign AI post creation as chatbot UX — referenced by #74 and #309.
 
 ## ⚠️ Needs triage (matched no screen)
 
-_None — every open v1.1 ticket maps to a screen._
+Add an `area/*` label to the issue, or extend a cluster `match` rule in clusters.json, then re-run.
+
+- **#394** chore(mobile): bump sentry_flutter to a Kotlin 1.8+ compatible version (Android build broken) — refs #365
+- **#371** feat(seller): emergency / after-hours service availability (full-stack) — deferred from PR #366 WS3 — refs #366
+- **#359** feat(mobile): capture user location — geocode ZIP backfill + fix profile-edit city/state form
